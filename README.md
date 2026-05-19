@@ -1,4 +1,4 @@
-# Warp Template Cloudflare Fullstack
+# Cloudflare Fullstack Template
 
 Run the app with `doppler run -- npm install` and `doppler run -- npm run dev`.
 
