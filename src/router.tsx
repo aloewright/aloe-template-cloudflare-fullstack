@@ -1,5 +1,4 @@
 /* AGPL-3.0-or-later */
-import React from "react";
 import {
   createRootRoute,
   createRoute,
