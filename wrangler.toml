@@ -5,7 +5,10 @@ compatibility_flags = ["nodejs_compat"]
 
 assets = { directory = "dist" }
 
+# D1 binding. database_id is intentionally omitted so the
+# "Deploy to Cloudflare" flow auto-provisions a fresh D1 on first deploy.
+# After deploy, `wrangler d1 list` will show the assigned id; locals can
+# fill it back in if needed for direct CLI work.
 [[d1_databases]]
-binding = "DB"
-database_name = "cf-harborline-template-demo"
-database_id = "0bcfb088-88d7-4d37-b4de-5cc24eca35b0"
+binding       = "DB"
+database_name = "template"
