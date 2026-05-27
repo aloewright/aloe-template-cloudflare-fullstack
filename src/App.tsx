@@ -41,15 +41,13 @@ export function App() {
                 Hello, world.
               </h1>
               <p className="text-base leading-7 text-slate-600">
-                A full-stack starter with a Vite front end, a Cloudflare Worker,
-                Better Auth, TanStack Router, TanStack Query, Tailwind, shadcn-style
-                controls, and D1-backed data access.
+                A full-stack starter with a Vite front end, a Cloudflare Worker, Better Auth,
+                TanStack Router, TanStack Query, Tailwind, shadcn-style controls, and D1-backed data
+                access.
               </p>
 
               <div className="flex flex-wrap gap-3">
-                <Button onClick={() => void healthQuery.refetch()}>
-                  Refresh health
-                </Button>
+                <Button onClick={() => void healthQuery.refetch()}>Refresh health</Button>
                 <Button variant="secondary" onClick={() => void meQuery.refetch()}>
                   Refresh session
                 </Button>
@@ -77,9 +75,7 @@ export function App() {
 function StatusRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="grid gap-1">
-      <span className="text-xs font-medium uppercase tracking-[0.2em] text-slate-500">
-        {label}
-      </span>
+      <span className="text-xs font-medium uppercase tracking-[0.2em] text-slate-500">{label}</span>
       <span className="break-all text-sm font-medium text-slate-900">{value}</span>
     </div>
   );
