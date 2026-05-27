@@ -10,5 +10,6 @@ assets = { directory = "dist" }
 # After deploy, `wrangler d1 list` will show the assigned id; locals can
 # fill it back in if needed for direct CLI work.
 [[d1_databases]]
-binding       = "DB"
-database_name = "template"
+binding        = "DB"
+database_name  = "template"
+migrations_dir = "worker/migrations"
