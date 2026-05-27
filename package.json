@@ -12,7 +12,10 @@
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p worker/tsconfig.json --noEmit",
     "lint": "biome lint .",
     "format": "biome format --write .",
-    "check": "biome check --write ."
+    "check": "biome check --write .",
+    "docs:dev": "npm --prefix docs run start",
+    "docs:build": "npm --prefix docs run build",
+    "docs:deploy": "npm --prefix docs run build && npx wrangler pages deploy docs/build --project-name template-docs"
   },
   "dependencies": {
     "@mantine/core": "^9.2.2",

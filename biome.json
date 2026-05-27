@@ -13,7 +13,8 @@
       "!**/node_modules",
       "!**/.claude",
       "!**/.codex",
-      "!**/.agents"
+      "!**/.agents",
+      "!**/docs"
     ]
   },
   "formatter": {
