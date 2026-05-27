@@ -1,14 +1,9 @@
----
-sidebar_position: 2
----
-
 # Architecture
 
-Two co-deployed projects:
+Two co-deployed Workers:
 
-- **Worker** at `template.<subdomain>.workers.dev` — serves the SPA via Workers
-  Assets and the API via Hono. Bound to D1.
-- **Pages** at `template-docs.<subdomain>.pages.dev` — this Docusaurus site.
+- **App Worker** at `template.<subdomain>.workers.dev` — serves the SPA via Workers Assets and the API via Hono. Bound to D1.
+- **Docs Worker** at `template-docs.<subdomain>.workers.dev` — this React + Mantine + MDX site, served as static assets from a Worker.
 
 ## Request flow
 

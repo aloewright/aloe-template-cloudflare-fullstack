@@ -1,7 +1,6 @@
 /* AGPL-3.0-or-later */
 import {
   Anchor,
-  Badge,
   Box,
   Button,
   Card,
@@ -36,9 +35,12 @@ export function Landing() {
       {/* Hero */}
       <Container size="lg" py={{ base: 60, md: 100 }}>
         <Stack gap="md" align="center" ta="center">
-          <Badge size="lg" variant="light">
-            Cloudflare SaaS template
-          </Badge>
+          <Group gap="sm" align="center">
+            <img src="/logo.svg" alt="" width={40} height={40} />
+            <Text fw={650} size="lg">
+              Cloudflare SaaS Template
+            </Text>
+          </Group>
           <Title order={1} size={56} lh={1.1}>
             Ship a SaaS on the edge in an afternoon.
           </Title>
