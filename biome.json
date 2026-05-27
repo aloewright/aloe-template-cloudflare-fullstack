@@ -6,7 +6,15 @@
     "useIgnoreFile": true
   },
   "files": {
-    "includes": ["**", "!**/dist", "!**/.wrangler", "!**/node_modules"]
+    "includes": [
+      "**",
+      "!**/dist",
+      "!**/.wrangler",
+      "!**/node_modules",
+      "!**/.claude",
+      "!**/.codex",
+      "!**/.agents"
+    ]
   },
   "formatter": {
     "enabled": true,
