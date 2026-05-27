@@ -36,10 +36,13 @@ A single-origin, edge-deployed full-stack starter: React SPA + Hono API + D1 dat
         │  https://<worker>.<account>.workers.dev              │
         │                                                      │
         │  fetch handler (Hono)                                │
-        │  ├─ /api/health        → JSON                        │
-        │  ├─ /api/me            → Better Auth session         │
-        │  ├─ /api/auth/*        → Better Auth handler         │
-        │  └─ *                  → Workers Assets (dist/)      │
+        │  ├─ /api/health             → JSON                   │
+        │  ├─ /api/session            → { unlocked }           │
+        │  ├─ /api/demo/unlock        → set cookie             │
+        │  ├─ /api/checkout           → Polar checkout URL     │
+        │  ├─ /api/checkout/success   → cookie + 302           │
+        │  ├─ /api/webhook/polar      → verify + D1 upsert     │
+        │  └─ *                       → Workers Assets (dist/) │
         │                                                      │
         │  env.DB ───────────► Cloudflare D1 (SQLite)          │
         └──────────────────────────────────────────────────────┘
@@ -60,23 +63,43 @@ A single-origin, edge-deployed full-stack starter: React SPA + Hono API + D1 dat
 ```
 .
 ├── src/                       # React SPA (client-only)
-│   ├── App.tsx                # Demo page: queries /api/health + /api/me
 │   ├── main.tsx               # ReactDOM root + QueryClient + RouterProvider
 │   ├── router.tsx             # TanStack Router tree
 │   ├── styles.css             # Tailwind entry
-│   └── lib/                   # fetchJson, client utilities
+│   ├── routes/
+│   │   ├── landing.tsx        # Public landing page
+│   │   └── dashboard.tsx      # Protected dashboard (checks demo_unlock cookie)
+│   └── lib/
+│       ├── session.ts         # Fetches /api/session, exposes useSession hook
+│       └── api.ts             # fetchJson helper
 │
 ├── worker/                    # Cloudflare Worker (server)
 │   ├── src/
 │   │   ├── index.ts           # Hono app, route registration
-│   │   ├── auth.ts            # Better Auth factory (scaffolded)
+│   │   ├── auth.ts            # Better Auth factory (scaffolded, not wired)
+│   │   ├── polar.ts           # Polar SDK helpers (checkout + webhook verify)
+│   │   ├── routes/
+│   │   │   ├── health.ts      # GET /api/health
+│   │   │   ├── session.ts     # GET /api/session
+│   │   │   ├── demo.ts        # POST /api/demo/unlock
+│   │   │   ├── checkout.ts    # POST /api/checkout
+│   │   │   ├── success.ts     # GET /api/checkout/success
+│   │   │   └── webhook.ts     # POST /api/webhook/polar
 │   │   └── db/
 │   │       ├── index.ts       # drizzle(env.DB) helper
 │   │       └── schema.ts      # Drizzle table definitions
+│   ├── migrations/
+│   │   └── 0000_outgoing_young_avengers.sql  # Creates subscriptions table
 │   └── tsconfig.json          # Worker-only TS config (workerd types)
+│
+├── docs/                      # Docusaurus documentation site
+│   ├── docs/                  # Markdown pages (served as the site root)
+│   ├── docusaurus.config.ts
+│   └── package.json
 │
 ├── dist/                      # Built SPA (created by `npm run build`)
 ├── biome.json                 # Linter + formatter config
+├── postcss.config.cjs         # PostCSS config for Mantine breakpoint vars
 ├── vite.config.ts             # Vite + plugin-react + Tailwind + /api proxy
 ├── wrangler.toml              # Worker name, D1 binding, assets dir
 ├── tsconfig.json              # Client TS config
@@ -100,20 +123,15 @@ npm install
 
 ### Create your D1 database
 
-The committed `wrangler.toml` points at the demo's D1 — replace it with your own:
+**One-click deploy users:** the Deploy badge auto-provisions a D1 database for you — no manual step needed here. Follow the [Post-deploy setup](#post-deploy-setup-one-click-deploy-users) section to apply migrations and add secrets.
+
+**Forking and deploying via the CLI:** `wrangler.toml` intentionally omits a `database_id` so the one-click flow works. For direct Wrangler CLI deploys, create the database first:
 
 ```bash
 npx wrangler d1 create <your-database-name>
 ```
 
-Wrangler prints a binding snippet. Copy the `database_id` into `wrangler.toml`:
-
-```toml
-[[d1_databases]]
-binding       = "DB"
-database_name = "<your-database-name>"
-database_id   = "<id-from-wrangler>"
-```
+Wrangler prints a `database_id`. You can paste it back into `wrangler.toml` if you want `wrangler d1 execute` / `wrangler d1 migrations apply` to resolve the database by id rather than by name. Local dev (`wrangler dev`) simulates D1 from `.wrangler/state/` and works fine without the `database_id` field.
 
 ---
 
@@ -203,9 +221,12 @@ Defined in `worker/src/index.ts`:
 
 | Method | Path | Behavior |
 | --- | --- | --- |
-| `GET` | `/api/health` | Returns `{ ok, service, timestamp }`. Always public. |
-| `GET` | `/api/me` | Returns the Better Auth session user, or `null` if signed out. |
-| `*` | `/api/auth/*` | Delegated to Better Auth's handler (sign-up, sign-in, etc.). |
+| `GET` | `/api/health` | `{ ok, service, timestamp }` |
+| `GET` | `/api/session` | `{ unlocked: boolean }` — reads the `demo_unlock` cookie |
+| `POST` | `/api/demo/unlock` | Sets the `demo_unlock` cookie (no payment required) |
+| `POST` | `/api/checkout` | Creates a Polar checkout session, returns `{ url }` |
+| `GET` | `/api/checkout/success?checkout_id=…` | Polar redirect target — verifies the checkout, sets cookie, 302 to `/dashboard` |
+| `POST` | `/api/webhook/polar` | HMAC-verifies the Polar webhook and upserts a `subscriptions` row in D1 |
 
 Anything not matching `/api/*` falls through to Workers Assets, which serves `dist/index.html` (the SPA).
 
@@ -213,23 +234,9 @@ Anything not matching `/api/*` falls through to Workers Assets, which serves `di
 
 ## Auth (scaffolded, not wired)
 
-`worker/src/auth.ts` defines a `createAuth(env)` factory using Better Auth with the D1 adapter and email+password enabled. The handler is mounted at `/api/auth/*` and `/api/me`.
+`worker/src/auth.ts` defines a `createAuth(env)` factory using Better Auth with the D1 adapter and email+password enabled. The factory is scaffolded but not mounted in the current demo — the demo uses a lightweight `demo_unlock` cookie via `/api/demo/unlock` instead of full auth.
 
-The demo deploy intentionally **does not** complete the auth setup. To enable it later:
-
-1. **Set a secret.** Better Auth requires `BETTER_AUTH_SECRET` (32+ random bytes, base64) in production:
-   ```bash
-   openssl rand -base64 32 | npx wrangler secret put BETTER_AUTH_SECRET
-   ```
-
-2. **Provision the auth tables.** Better Auth needs four tables (`user`, `session`, `account`, `verification`). Generate the SQL from the Better Auth CLI or hand-author a migration, then apply it:
-   ```bash
-   npx wrangler d1 migrations apply <your-database-name> --remote
-   ```
-
-3. **Read the env in `auth.ts`.** Pass `secret: env.BETTER_AUTH_SECRET` (and a `baseURL`) into `betterAuth({...})` so the production deploy stops using dev defaults.
-
-Until those steps land, `/api/auth/*` and `/api/me` will respond but sign-up will fail because the tables don't exist.
+For steps to wire Better Auth into the app (set the secret, provision tables, mount the handler), see the **Customizing** guide in the [documentation site](https://template-docs.lazee.workers.dev) or `docs/docs/customizing.md` in this repo.
 
 ---
 
