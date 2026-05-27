@@ -4,6 +4,8 @@ A single-origin, edge-deployed full-stack starter: React SPA + Hono API + D1 dat
 
 **Live demo:** https://template.lazee.workers.dev
 
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/aloewright/my-cf-template)
+
 ---
 
 ## Tech Stack
@@ -112,6 +114,32 @@ binding       = "DB"
 database_name = "<your-database-name>"
 database_id   = "<id-from-wrangler>"
 ```
+
+---
+
+## Post-deploy setup (one-click deploy users)
+
+The Deploy badge above provisions a Worker and a D1 database in your account, but
+the SaaS bits need three secrets and one migration before billing works.
+
+```bash
+# 1. Set Polar secrets (use sandbox tokens while you're testing)
+echo "polar_oat_…"       | npx wrangler secret put POLAR_ACCESS_TOKEN
+echo "polar_whsec_…"     | npx wrangler secret put POLAR_WEBHOOK_SECRET
+echo "prod_…"            | npx wrangler secret put POLAR_PRODUCT_ID
+# Optional: flip to production once you're live
+echo "production"        | npx wrangler secret put POLAR_SERVER
+
+# 2. Apply migrations to the freshly-provisioned D1
+npx wrangler d1 migrations apply template --remote
+
+# 3. Point Polar's webhook URL at:
+#    https://<your-worker>.<your-subdomain>.workers.dev/api/webhook/polar
+```
+
+Visit your deploy URL — the landing page should render. "Enter demo" works
+without any of the above (it just sets the cookie). "Subscribe with Polar"
+needs the secrets to hit the API.
 
 ---
 
