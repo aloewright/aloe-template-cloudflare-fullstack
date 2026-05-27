@@ -161,6 +161,25 @@ needs the secrets to hit the API.
 
 ---
 
+## Auto-deploy on push to main
+
+`.github/workflows/deploy-app.yml` and `.github/workflows/deploy-docs.yml` redeploy each Worker on every push to `main`. Path filters keep them independent — docs-only changes don't redeploy the app, and vice versa.
+
+To enable, set two repo secrets:
+
+```bash
+# Create a Cloudflare API token with the "Edit Cloudflare Workers" template
+# (or scoped to Workers Scripts: Edit + Workers KV / D1 / Pages as needed).
+gh secret set CLOUDFLARE_API_TOKEN     # paste the token when prompted
+gh secret set CLOUDFLARE_ACCOUNT_ID    # your account id, e.g. 85d376fc54617bcb57185547f08e528b
+```
+
+Then push to `main`. Either workflow can also be triggered manually via `gh workflow run deploy-app.yml` / `deploy-docs.yml`.
+
+Secrets you set with `wrangler secret put` (Polar keys, Better Auth secret) persist on the Worker independently — they don't need to be in GitHub.
+
+---
+
 ## Local Development
 
 ```bash
