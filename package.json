@@ -20,6 +20,7 @@
     "@mantine/hooks": "^9.2.2",
     "@mantine/modals": "^9.2.2",
     "@mantine/notifications": "^9.2.2",
+    "@polar-sh/sdk": "^0.47.1",
     "@tanstack/react-query": "^5.90.0",
     "@tanstack/react-router": "^1.120.0",
     "better-auth": "^1.5.0",
