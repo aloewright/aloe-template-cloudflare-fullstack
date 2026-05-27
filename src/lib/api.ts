@@ -8,3 +8,14 @@ export async function fetchJson<T>(input: RequestInfo | URL, init?: RequestInit)
 
   return (await response.json()) as T;
 }
+
+type CheckoutResponse = { url: string };
+
+export async function startCheckout(): Promise<string> {
+  const res = await fetchJson<CheckoutResponse>("/api/checkout", { method: "POST" });
+  return res.url;
+}
+
+export async function unlockDemo(): Promise<void> {
+  await fetchJson<{ ok: true }>("/api/demo/unlock", { method: "POST" });
+}
