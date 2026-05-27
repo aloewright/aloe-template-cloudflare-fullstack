@@ -15,16 +15,18 @@
     "check": "biome check --write ."
   },
   "dependencies": {
-    "@radix-ui/react-slot": "^1.2.3",
+    "@mantine/core": "^9.2.2",
+    "@mantine/form": "^9.2.2",
+    "@mantine/hooks": "^9.2.2",
+    "@mantine/modals": "^9.2.2",
+    "@mantine/notifications": "^9.2.2",
     "@tanstack/react-query": "^5.90.0",
     "@tanstack/react-router": "^1.120.0",
     "better-auth": "^1.5.0",
-    "clsx": "^2.1.1",
     "drizzle-orm": "^0.45.2",
     "hono": "^4.12.18",
     "react": "^19.2.0",
-    "react-dom": "^19.2.0",
-    "tailwind-merge": "^3.3.0"
+    "react-dom": "^19.2.0"
   },
   "overrides": {
     "@esbuild-kit/core-utils": {
@@ -40,6 +42,9 @@
     "@vitejs/plugin-react": "^6.0.0",
     "concurrently": "^9.0.0",
     "drizzle-kit": "^0.31.0",
+    "postcss": "^8.5.15",
+    "postcss-preset-mantine": "^1.18.0",
+    "postcss-simple-vars": "^7.0.1",
     "tailwindcss": "^4.0.0",
     "typescript": "^5.9.0",
     "vite": "^8.0.0",

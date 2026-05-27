@@ -1,6 +1,6 @@
 /* AGPL-3.0-or-later */
+import { Button } from "@mantine/core";
 import { useQuery } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
 import { fetchJson } from "@/lib/api";
 
 type HealthResponse = {
@@ -48,7 +48,7 @@ export function App() {
 
               <div className="flex flex-wrap gap-3">
                 <Button onClick={() => void healthQuery.refetch()}>Refresh health</Button>
-                <Button variant="secondary" onClick={() => void meQuery.refetch()}>
+                <Button variant="light" onClick={() => void meQuery.refetch()}>
                   Refresh session
                 </Button>
               </div>
