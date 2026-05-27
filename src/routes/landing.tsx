@@ -28,8 +28,7 @@ export function Landing() {
 
   async function onEnterDemo() {
     await unlockDemo();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    navigate({ to: "/dashboard" as any });
+    navigate({ to: "/dashboard" });
   }
 
   return (
