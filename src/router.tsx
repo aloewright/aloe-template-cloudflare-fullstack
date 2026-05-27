@@ -1,11 +1,5 @@
 /* AGPL-3.0-or-later */
-import React from "react";
-import {
-  createRootRoute,
-  createRoute,
-  createRouter,
-  Outlet,
-} from "@tanstack/react-router";
+import { createRootRoute, createRoute, createRouter, Outlet } from "@tanstack/react-router";
 import { App } from "@/App";
 
 const rootRoute = createRootRoute({

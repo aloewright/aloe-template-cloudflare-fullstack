@@ -9,7 +9,10 @@
     "dev:worker": "WRANGLER_LOG_PATH=.wrangler/logs/wrangler.log WRANGLER_REGISTRY_PATH=.wrangler/registry wrangler --cwd worker dev -c ../wrangler.toml --port 8787 --ip 127.0.0.1",
     "build": "vite build && tsc -p worker/tsconfig.json --noEmit",
     "preview": "vite preview --host 127.0.0.1 --port 4173",
-    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p worker/tsconfig.json --noEmit"
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p worker/tsconfig.json --noEmit",
+    "lint": "biome lint .",
+    "format": "biome format --write .",
+    "check": "biome check --write ."
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.2.3",
@@ -23,17 +26,23 @@
     "react-dom": "^19.2.0",
     "tailwind-merge": "^3.3.0"
   },
+  "overrides": {
+    "@esbuild-kit/core-utils": {
+      "esbuild": "^0.25.0"
+    }
+  },
   "devDependencies": {
+    "@biomejs/biome": "2.4.16",
     "@cloudflare/workers-types": "^4.2026.0",
     "@tailwindcss/vite": "^4.0.0",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
-    "@vitejs/plugin-react": "^5.0.0",
+    "@vitejs/plugin-react": "^6.0.0",
     "concurrently": "^9.0.0",
     "drizzle-kit": "^0.31.0",
     "tailwindcss": "^4.0.0",
     "typescript": "^5.9.0",
-    "vite": "^7.0.0",
+    "vite": "^8.0.0",
     "wrangler": "^4.0.0"
   }
 }
