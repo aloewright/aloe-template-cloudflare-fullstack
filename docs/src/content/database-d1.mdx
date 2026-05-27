@@ -1,11 +1,6 @@
----
-sidebar_position: 5
----
-
 # Database (D1 + Drizzle)
 
-Schema lives in `worker/src/db/schema.ts`. Drizzle Kit generates SQL into
-`worker/migrations/`.
+Schema lives in `worker/src/db/schema.ts`. Drizzle Kit generates SQL into `worker/migrations/`.
 
 ## Add a column
 
@@ -22,7 +17,7 @@ Schema lives in `worker/src/db/schema.ts`. Drizzle Kit generates SQL into
 
 ## Ad-hoc SQL
 
-````bash
+```bash
 npx wrangler d1 execute template --remote \
   --command "SELECT * FROM subscriptions ORDER BY updated_at DESC LIMIT 10"
-````
+```

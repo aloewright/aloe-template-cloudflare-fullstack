@@ -1,0 +1,38 @@
+:root {
+  color-scheme: light dark;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+}
+
+/* Shiki output is wrapped in <pre><code>. Make sure code blocks scroll and have padding. */
+pre[class*="shiki"], pre.shiki {
+  padding: 1rem 1.25rem;
+  border-radius: 8px;
+  overflow-x: auto;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  background-color: #0d1117 !important;
+}
+
+pre[class*="shiki"] code, pre.shiki code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+/* Inline code outside Shiki blocks */
+:not(pre) > code {
+  background: var(--mantine-color-gray-1);
+  padding: 0.1em 0.4em;
+  border-radius: 4px;
+  font-size: 0.9em;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+[data-mantine-color-scheme="dark"] :not(pre) > code {
+  background: var(--mantine-color-dark-5);
+}
