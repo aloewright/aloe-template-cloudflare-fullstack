@@ -1,0 +1,28 @@
+---
+sidebar_position: 7
+---
+
+# Customizing
+
+## Add a route
+
+Two pieces — server and client.
+
+**Server:** create `worker/src/routes/<name>.ts`, export a `Hono` instance, mount it in `worker/src/index.ts` with `app.route("/api/<name>", mod)`.
+
+**Client:** create `src/routes/<Name>.tsx`, add it to `src/router.tsx`'s `routeTree` via `createRoute`.
+
+## Wire Better Auth
+
+The scaffold sits in `worker/src/auth.ts`. To turn it on:
+
+1. `npx wrangler secret put BETTER_AUTH_SECRET` (32+ random bytes, base64).
+2. Mount it: in `worker/src/index.ts` add `app.on(["GET","POST"], "/api/auth/*", (c) => createAuth(c.env).handler(c.req.raw))`.
+3. Generate Better Auth's tables (`user`, `session`, `account`, `verification`) and add them as a Drizzle migration.
+4. Replace the cookie check in `worker/src/routes/session.ts` with the auth-aware version from [Protected routes](./protected-routes.md).
+
+## Swap Mantine for something else
+
+`@mantine/*` packages are listed in `dependencies`. Replace them, drop the
+`MantineProvider` wrapping in `src/main.tsx`, and rewrite `src/routes/landing.tsx`
+in your component library of choice. Tailwind utility classes stay usable.

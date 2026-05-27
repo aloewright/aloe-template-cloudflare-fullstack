@@ -1,0 +1,28 @@
+---
+sidebar_position: 5
+---
+
+# Database (D1 + Drizzle)
+
+Schema lives in `worker/src/db/schema.ts`. Drizzle Kit generates SQL into
+`worker/migrations/`.
+
+## Add a column
+
+1. Edit `schema.ts`.
+2. Run `cd worker && npx drizzle-kit generate`.
+3. Commit the new migration.
+4. Apply locally: `npx wrangler d1 migrations apply template --local`.
+5. Apply to prod: `npx wrangler d1 migrations apply template --remote`.
+
+## Tables shipped in the template
+
+- `notes` — demonstrates a plain Drizzle table.
+- `subscriptions` — owned by the Polar webhook handler.
+
+## Ad-hoc SQL
+
+````bash
+npx wrangler d1 execute template --remote \
+  --command "SELECT * FROM subscriptions ORDER BY updated_at DESC LIMIT 10"
+````
