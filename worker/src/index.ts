@@ -6,6 +6,7 @@ import { demo } from "./routes/demo";
 import { health } from "./routes/health";
 import { session } from "./routes/session";
 import { success } from "./routes/success";
+import { webhook } from "./routes/webhook";
 
 export type Bindings = {
   DB: D1Database;
@@ -18,5 +19,6 @@ app.route("/api/session", session);
 app.route("/api/demo", demo);
 app.route("/api/checkout", checkout);
 app.route("/api/checkout/success", success);
+app.route("/api/webhook/polar", webhook);
 
 export default app;
