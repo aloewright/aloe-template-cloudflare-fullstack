@@ -7,7 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-Nothing yet.
+### Changed
+
+- **README rewritten as a canonical template README.** Title renamed to "Cloudflare SaaS Template"; lede reframed so it reads as a template (not a personal project); reference-deployment URLs explicitly labeled. Project Layout block updated — the stale Docusaurus description was replaced with the actual React + Mantine + MDX docs shape. Tech Stack picked up rows for Polar, Tabler icons, Nunito, and a CI row. Node prerequisite bumped 20 → 22 (matches Wrangler 4 + CI). `CLOUDFLARE_ACCOUNT_ID` example genericized to `wrangler whoami` rather than a literal account id. Auth section now points at the in-repo `docs/src/content/customizing.mdx` as a fallback for forks where the reference docs URL doesn't apply. `npm overrides` note expanded to cover both root and `docs/` pins.
+
+### Added
+
+- README **"What's inside"** feature summary above the Tech Stack table — 9 bullets for fast scanning.
+- README **"Docs site"** section documenting the docs-as-a-Worker pattern and the `docs:*` scripts (`docs:dev`, `docs:build`, `docs:deploy`).
+- README **"Releases"** section linking the GitHub Releases page and CHANGELOG (Keep a Changelog + SemVer attribution).
+- Release + Changelog badges next to the Deploy-to-Cloudflare button.
 
 ## [0.1.0] — 2026-05-28
 
