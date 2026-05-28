@@ -371,6 +371,11 @@ Bump the compatibility date quarterly to pick up new `workerd` features.
 
 Released versions are tagged on `main` and listed on the [Releases page](https://github.com/aloewright/my-cf-template/releases). Detailed notes live in [`CHANGELOG.md`](./CHANGELOG.md), which follows [Keep a Changelog](https://keepachangelog.com/) + [SemVer](https://semver.org).
 
+| Version | Date | Headline |
+| --- | --- | --- |
+| **[v0.2.0](https://github.com/aloewright/my-cf-template/releases/tag/v0.2.0)** | 2026-05-28 | Canonical-template README pass — title, lede, "What's inside", "Docs site", "Releases" sections; Node 22 prereq; overrides note expanded. |
+| **[v0.1.0](https://github.com/aloewright/my-cf-template/releases/tag/v0.1.0)** | 2026-05-28 | Initial release — Worker + Hono + D1 + Drizzle + Polar billing + stub-gated dashboard, separate React+Mantine+MDX docs Worker, one-click deploy, GitHub Actions, Dependabot. |
+
 ---
 
 ## License
