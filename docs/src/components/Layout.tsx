@@ -1,6 +1,7 @@
 import { AppShell, Burger, Group, ScrollArea } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { Outlet } from "@tanstack/react-router";
+import { Footer } from "@/components/Footer";
 import { Logo } from "@/components/Logo";
 import { NavbarLinks } from "@/components/NavbarLinks";
 import { Sidebar } from "@/components/Sidebar";
@@ -12,6 +13,7 @@ export function Layout() {
     <AppShell
       header={{ height: 60 }}
       navbar={{ width: 280, breakpoint: "sm", collapsed: { mobile: !opened } }}
+      footer={{ height: 44 }}
       padding="md"
     >
       <AppShell.Header>
@@ -33,6 +35,10 @@ export function Layout() {
       <AppShell.Main>
         <Outlet />
       </AppShell.Main>
+
+      <AppShell.Footer>
+        <Footer />
+      </AppShell.Footer>
     </AppShell>
   );
 }
