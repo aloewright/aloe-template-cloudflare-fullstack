@@ -1,14 +1,35 @@
-# Cloudflare Full-Stack Template
+# Cloudflare SaaS Template
 
-A single-origin, edge-deployed full-stack starter: React SPA + Hono API + D1 database, all bundled into one Cloudflare Worker. Built for fast cold starts, zero-server ops, and a clean TypeScript-everywhere developer experience.
+A reference SaaS on Cloudflare Workers: React + Mantine on the front, Hono on a single Cloudflare Worker, D1 + Drizzle for data, Polar for billing. One origin, one deploy, zero infra ops. TypeScript everywhere.
 
-**Live demo:** https://template.lazee.workers.dev
+**Reference deployment** (maintained from this repo):
+
+- App: https://template.lazee.workers.dev
+- Docs: https://template-docs.lazee.workers.dev
 
 [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/aloewright/my-cf-template)
+&nbsp;
+[![Latest release](https://img.shields.io/github/v/release/aloewright/my-cf-template?label=release)](https://github.com/aloewright/my-cf-template/releases)
+&nbsp;
+[![Changelog](https://img.shields.io/badge/changelog-keepachangelog-blue)](./CHANGELOG.md)
 
 ![Demo landing — hero with dual CTAs and feature cards](./.github/screenshot.png)
 
 ![Docs site — AppShell with sidebar, content, and footer](./.github/docs-screenshot.png)
+
+---
+
+## What's inside
+
+- 🚀 **Single Worker** serves both the React SPA and the Hono API from one origin — no CORS, one `wrangler deploy`.
+- 💳 **Polar billing** end-to-end: checkout → success redirect → webhook → subscription rows in D1.
+- 🔓 **Stub-gated `/dashboard`** with a no-payment **Enter demo** button so visitors can explore the protected route without buying.
+- 🗄️ **Cloudflare D1 + Drizzle ORM** with migrations.
+- 🔐 **Better Auth scaffolded** in `worker/src/auth.ts` — swap-in instructions in the docs site.
+- 📚 **Standalone docs site** in `docs/` (React + Mantine + MDX), deployed as a separate Worker.
+- ☁️ **One-click "Deploy to Cloudflare"** badge — auto-provisions D1 on first deploy.
+- 🤖 **GitHub Actions auto-deploy** + **Dependabot** weekly.
+- 🌗 **Dark mode toggle**, **Nunito** typography, custom logo, refined **Tabler icons**.
 
 ---
 
@@ -20,15 +41,17 @@ A single-origin, edge-deployed full-stack starter: React SPA + Hono API + D1 dat
 | **Frontend** | React 19 + Vite 8 (Rolldown / Oxc) | Modern React, instant HMR, ~100 ms production builds |
 | **Routing** | TanStack Router | File-less, type-safe routes with full inference |
 | **Data fetching** | TanStack Query | Cache + revalidation primitives for client state |
-| **UI components** | Mantine 9 (core, hooks, notifications, modals, form) | Full component library with hooks, toast, dialog manager, and form state |
-| **Styling** | Tailwind CSS 4 | Utility-first CSS via the new Vite plugin; layered alongside Mantine components |
+| **UI components** | Mantine 9 (core, hooks, notifications, modals, form) + Tabler icons | Full component library; dark-mode aware via CSS variables |
+| **Styling** | Tailwind CSS 4 + Nunito | Utility CSS via the new Vite plugin; Nunito loaded from Google Fonts |
 | **API** | Hono | Tiny, fast router that matches the Workers fetch handler |
 | **Database** | Cloudflare D1 (SQLite at the edge) | Pay-per-row, zero-config, replicated |
 | **ORM** | Drizzle | Schema-first, generates SQL migrations, runs in `workerd` |
-| **Auth (scaffolded)** | Better Auth | D1-backed sessions, email+password ready — not yet wired up in the demo |
+| **Billing** | Polar (`@polar-sh/sdk`) | Merchant of record — checkout sessions + webhook verification |
+| **Auth (scaffolded)** | Better Auth | D1-backed sessions, email+password ready — not wired in the reference deployment |
 | **Lint / Format** | Biome 2.4 | One tool, Rust-fast, replaces ESLint + Prettier |
-| **Build** | Vite 8 + `tsc --noEmit` | Type-check both client and worker tsconfigs |
+| **Build** | Vite 8 (Rolldown / Oxc) + `tsc --noEmit` | Type-check both client and worker tsconfigs |
 | **Deploy** | Wrangler 4 | Worker + assets in a single deploy |
+| **CI** | GitHub Actions + Dependabot | Auto-deploy on push to `main`; weekly dep bumps |
 
 ---
 
@@ -96,9 +119,13 @@ A single-origin, edge-deployed full-stack starter: React SPA + Hono API + D1 dat
 │   │   └── 0000_outgoing_young_avengers.sql  # Creates subscriptions table
 │   └── tsconfig.json          # Worker-only TS config (workerd types)
 │
-├── docs/                      # Docusaurus documentation site
-│   ├── docs/                  # Markdown pages (served as the site root)
-│   ├── docusaurus.config.ts
+├── docs/                      # Standalone docs site (React + Mantine + MDX)
+│   ├── src/
+│   │   ├── content/           # 7 MDX pages: intro, architecture, billing, …
+│   │   ├── components/        # Layout, Sidebar, Footer, ColorSchemeToggle, …
+│   │   ├── theme.ts           # Mantine theme (Nunito, lg radius)
+│   │   └── router.tsx         # TanStack Router, one route per MDX page
+│   ├── wrangler.toml          # Deploys as its own `template-docs` Worker
 │   └── package.json
 │
 ├── dist/                      # Built SPA (created by `npm run build`)
@@ -116,8 +143,8 @@ A single-origin, edge-deployed full-stack starter: React SPA + Hono API + D1 dat
 
 ### Prerequisites
 
-- Node 20+ (or Bun — see [Bun note](#bun-instead-of-node) below)
-- A Cloudflare account with Workers + D1 access (`wrangler login` if not already authenticated)
+- Node 22+ (Wrangler 4 requires it; CI pins 22). Or Bun — see [Bun note](#bun-instead-of-node) below.
+- A Cloudflare account with Workers + D1 access (`wrangler login` if not already authenticated).
 
 ### Install
 
@@ -175,7 +202,7 @@ To enable, set two repo secrets:
 # Create a Cloudflare API token with the "Edit Cloudflare Workers" template
 # (or scoped to Workers Scripts: Edit + Workers KV / D1 / Pages as needed).
 gh secret set CLOUDFLARE_API_TOKEN     # paste the token when prompted
-gh secret set CLOUDFLARE_ACCOUNT_ID    # your account id, e.g. 85d376fc54617bcb57185547f08e528b
+gh secret set CLOUDFLARE_ACCOUNT_ID    # your account id — find via `wrangler whoami`
 ```
 
 Then push to `main`. Either workflow can also be triggered manually via `gh workflow run deploy-app.yml` / `deploy-docs.yml`.
@@ -255,11 +282,25 @@ Anything not matching `/api/*` falls through to Workers Assets, which serves `di
 
 ---
 
+## Docs site
+
+The `docs/` directory is a separate Vite + React + Mantine + MDX SPA that deploys as its own Worker named `template-docs` (so it lives at `template-docs.<your-subdomain>.workers.dev`). It hosts 7 walkthrough pages — Intro, Architecture, Billing, Protected routes, Database, Deploy, Customizing — and inherits the same dark-mode toggle and Nunito typography as the app.
+
+| Script | Purpose |
+| --- | --- |
+| `npm run docs:dev` | Local dev on `127.0.0.1:3000` |
+| `npm run docs:build` | Production build to `docs/dist/` |
+| `npm run docs:deploy` | Build + `wrangler deploy --cwd docs` |
+
+The docs Worker has no D1 binding — it's static-assets-only with SPA fallback. See `docs/wrangler.toml`.
+
+---
+
 ## Auth (scaffolded, not wired)
 
 `worker/src/auth.ts` defines a `createAuth(env)` factory using Better Auth with the D1 adapter and email+password enabled. The factory is scaffolded but not mounted in the current demo — the demo uses a lightweight `demo_unlock` cookie via `/api/demo/unlock` instead of full auth.
 
-For steps to wire Better Auth into the app (set the secret, provision tables, mount the handler), see the **Customizing** guide in the [documentation site](https://template-docs.lazee.workers.dev) or `docs/docs/customizing.md` in this repo.
+For steps to wire Better Auth into the app (set the secret, provision tables, mount the handler), see the **Customizing** guide either on the [reference docs site](https://template-docs.lazee.workers.dev) or directly in this repo at [`docs/src/content/customizing.mdx`](./docs/src/content/customizing.mdx).
 
 ---
 
@@ -304,17 +345,12 @@ Mantine requires PostCSS for breakpoint variables and the `rem()`/`em()` functio
 
 `biome.json` is configured for 2-space indent, double quotes, 100-column lines. The ECC tooling directories (`.claude/`, `.codex/`, `.agents/`) are excluded from formatting. Run `npm run check` before committing.
 
-### esbuild override
+### npm overrides
 
-`package.json` includes:
+Two sets of `overrides` ship to silence build-only Dependabot alerts in transitive deps:
 
-```json
-"overrides": {
-  "@esbuild-kit/core-utils": { "esbuild": "^0.25.0" }
-}
-```
-
-This clears [GHSA-67mh-4wv8-2f99](https://github.com/advisories/GHSA-67mh-4wv8-2f99) from a deprecated transitive in `drizzle-kit`. The `@esbuild-kit/*` packages have been merged into `tsx` upstream, so this should become unnecessary in a future `drizzle-kit` release.
+- Root `package.json` — pins `@esbuild-kit/core-utils → esbuild ^0.25.0` to clear [GHSA-67mh-4wv8-2f99](https://github.com/advisories/GHSA-67mh-4wv8-2f99) in `drizzle-kit`. The `@esbuild-kit/*` packages have been merged into `tsx` upstream, so this becomes unnecessary in a future `drizzle-kit` release.
+- `docs/package.json` — pins `serialize-javascript ^7.0.5` and `uuid ^11.1.1` to clear three Docusaurus-era build-only advisories. Can be removed if those upstream chains drop their old transitive versions.
 
 ### Bun instead of Node
 
@@ -328,6 +364,12 @@ The entire dev/build pipeline runs unchanged under Bun: replace `npm install` wi
 - `compatibility_flags = ["nodejs_compat"]` — required by Better Auth and several Hono middlewares
 
 Bump the compatibility date quarterly to pick up new `workerd` features.
+
+---
+
+## Releases
+
+Released versions are tagged on `main` and listed on the [Releases page](https://github.com/aloewright/my-cf-template/releases). Detailed notes live in [`CHANGELOG.md`](./CHANGELOG.md), which follows [Keep a Changelog](https://keepachangelog.com/) + [SemVer](https://semver.org).
 
 ---
 
