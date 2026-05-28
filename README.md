@@ -6,6 +6,8 @@ A single-origin, edge-deployed full-stack starter: React SPA + Hono API + D1 dat
 
 [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/aloewright/my-cf-template)
 
+![Cloudflare SaaS Template — landing page](./.github/screenshot.png)
+
 ---
 
 ## Tech Stack
