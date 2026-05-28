@@ -1,6 +1,7 @@
 import { AppShell, Burger, Group, ScrollArea } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { Outlet } from "@tanstack/react-router";
+import { ColorSchemeToggle } from "@/components/ColorSchemeToggle";
 import { Footer } from "@/components/Footer";
 import { Logo } from "@/components/Logo";
 import { NavbarLinks } from "@/components/NavbarLinks";
@@ -22,7 +23,10 @@ export function Layout() {
             <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" />
             <Logo />
           </Group>
-          <NavbarLinks />
+          <Group gap="md">
+            <NavbarLinks />
+            <ColorSchemeToggle />
+          </Group>
         </Group>
       </AppShell.Header>
 
