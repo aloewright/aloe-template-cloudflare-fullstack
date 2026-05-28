@@ -11,6 +11,7 @@ import { RouterProvider } from "@tanstack/react-router";
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { router } from "@/router";
+import { theme } from "@/theme";
 import "@/styles.css";
 
 const queryClient = new QueryClient({
@@ -27,7 +28,7 @@ if (!rootElement) throw new Error("Root element #root not found");
 
 ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
-    <MantineProvider defaultColorScheme="light">
+    <MantineProvider theme={theme} defaultColorScheme="light">
       <ModalsProvider>
         <QueryClientProvider client={queryClient}>
           <RouterProvider router={router} />
