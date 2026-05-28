@@ -1,11 +1,16 @@
 import { createTheme } from "@mantine/core";
 
+const nunitoStack =
+  "Nunito, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+
 export const theme = createTheme({
   primaryColor: "indigo",
-  defaultRadius: "md",
-  fontFamily: "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+  // Rounded edges everywhere — cards, buttons, inputs, badges, etc. all
+  // pick up defaultRadius when no explicit `radius` prop is set.
+  defaultRadius: "lg",
+  fontFamily: nunitoStack,
   headings: {
-    fontFamily: "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-    fontWeight: "650",
+    fontFamily: nunitoStack,
+    fontWeight: "700",
   },
 });
