@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Re-platformed the UI to TanStack Start (SSR) on a single Cloudflare Worker.** The static React SPA (`index.html` + `main.tsx` + `assets=dist`) is replaced by TanStack Start file-based routes with edge SSR; the existing Hono API is mounted unchanged as a splat server route (`src/routes/api/$.ts` → `app.fetch(request, env)`), preserving one origin / one deploy. Bindings via `cloudflare:workers`. Toolchain swapped Biome → **oxlint + Prettier**. Added **Zustand** (UI state), **TanStack Table + Virtual** (sortable, selectable, virtualized table view), **@mantine/spotlight** (⌘K palette), **@mantine/nprogress** (route progress), **TanStack Hotkeys** (g/t/1-3/d/Esc), and installed **@mantine/dates/carousel/dropzone** (kept lazy for the editing phase). Data fetching stays client-side via TanStack Query.
+
 ### Added
 
 - **Media library views, filter & sort:** the gallery is now a single unified library (images + videos) with a Grid/Table view toggle, a Media-type filter (All / Images / Videos), and live Sort (newest, oldest, name A→Z/Z→A, type, duration). All media is loaded client-side and filtered/sorted in memory. The detail drawer lists each image variant as a clickable box labelled with its name + configured resolution (e.g. `FHD · 1920×1080`); clicking copies that variant's (signed) delivery URL. New `/api/images/variants` endpoint exposes variant dimensions, and image-detail responses now sign every variant URL (not just the thumbnail).
