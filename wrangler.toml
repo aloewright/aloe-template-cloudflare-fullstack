@@ -13,3 +13,10 @@ assets = { directory = "dist" }
 binding        = "DB"
 database_name  = "template"
 migrations_dir = "worker/migrations"
+
+# Cloudflare Access (Zero Trust) — fill these in for your deployment.
+# Create a self-hosted Access application in Zero Trust > Access > Applications
+# pointing at this Worker's hostname, then copy its AUD tag here.
+[vars]
+TEAM_DOMAIN = "https://CHANGE-ME.cloudflareaccess.com"
+POLICY_AUD = "CHANGE-ME-aud-tag"

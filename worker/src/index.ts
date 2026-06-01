@@ -1,6 +1,6 @@
 /* AGPL-3.0-or-later */
 import { Hono } from "hono";
-import type { PolarEnv } from "./polar";
+import type { Bindings } from "./types";
 import { checkout } from "./routes/checkout";
 import { demo } from "./routes/demo";
 import { health } from "./routes/health";
@@ -8,9 +8,7 @@ import { session } from "./routes/session";
 import { success } from "./routes/success";
 import { webhook } from "./routes/webhook";
 
-export type Bindings = {
-  DB: D1Database;
-} & PolarEnv;
+export type { Bindings } from "./types";
 
 const app = new Hono<{ Bindings: Bindings }>();
 
