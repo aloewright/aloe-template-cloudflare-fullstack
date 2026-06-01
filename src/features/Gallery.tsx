@@ -1,6 +1,7 @@
 /* AGPL-3.0-or-later */
 import {
   ActionIcon,
+  Button,
   Center,
   Container,
   Group,
@@ -10,8 +11,10 @@ import {
   Text,
   Title,
 } from "@mantine/core";
+import { modals } from "@mantine/modals";
+import { notifications } from "@mantine/notifications";
 import { IconSettings } from "@tabler/icons-react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { useMemo } from "react";
 import { ColorSchemeToggle } from "@/components/ColorSchemeToggle";
@@ -20,7 +23,7 @@ import { MediaDetailDrawer } from "@/components/MediaDetailDrawer";
 import { MediaGrid } from "@/components/MediaGrid";
 import { MediaTable } from "@/components/MediaTable";
 import { getMe } from "@/lib/cf-api";
-import { fetchAllMedia, filterAndSort, type SortKey } from "@/lib/media";
+import { deleteMediaItem, fetchAllMedia, filterAndSort, type SortKey } from "@/lib/media";
 import { type MediaType, useUIStore } from "@/lib/store";
 
 const SORT_OPTIONS = [
@@ -56,6 +59,39 @@ export function Gallery() {
     [media.data, type, sort],
   );
 
+  const selectedIds = useUIStore((s) => s.selectedIds);
+  const setSelectedIds = useUIStore((s) => s.setSelectedIds);
+  const queryClient = useQueryClient();
+  const selectedItems = useMemo(
+    () => items.filter((i) => selectedIds[`${i.kind}-${i.id}`]),
+    [items, selectedIds],
+  );
+
+  const bulkDelete = () =>
+    modals.openConfirmModal({
+      title: `Delete ${selectedItems.length} item(s)?`,
+      children: (
+        <Text size="sm">
+          This permanently deletes the selected media from Cloudflare. This cannot be undone.
+        </Text>
+      ),
+      labels: { confirm: "Delete", cancel: "Cancel" },
+      confirmProps: { color: "red" },
+      onConfirm: async () => {
+        const results = await Promise.allSettled(selectedItems.map((i) => deleteMediaItem(i)));
+        const failed = results.filter((r) => r.status === "rejected").length;
+        setSelectedIds({});
+        queryClient.invalidateQueries({ queryKey: ["media"] });
+        notifications.show({
+          message:
+            failed === 0
+              ? `Deleted ${results.length} item(s)`
+              : `Deleted ${results.length - failed} of ${results.length} (${failed} failed)`,
+          color: failed === 0 ? "green" : "orange",
+        });
+      },
+    });
+
   return (
     <Container size="xl" py="md">
       <Group justify="space-between" mb="md">
@@ -81,14 +117,21 @@ export function Gallery() {
       </Group>
 
       <Group justify="space-between" mb="md" wrap="wrap">
-        <SegmentedControl
-          value={view}
-          onChange={(v) => setView(v as "grid" | "table")}
-          data={[
-            { value: "grid", label: "Grid" },
-            { value: "table", label: "Table" },
-          ]}
-        />
+        <Group gap="sm">
+          <SegmentedControl
+            value={view}
+            onChange={(v) => setView(v as "grid" | "table")}
+            data={[
+              { value: "grid", label: "Grid" },
+              { value: "table", label: "Table" },
+            ]}
+          />
+          {selectedItems.length > 0 && (
+            <Button color="red" variant="light" onClick={bulkDelete}>
+              Delete selected ({selectedItems.length})
+            </Button>
+          )}
+        </Group>
         <Group gap="sm">
           <Select
             label={undefined}

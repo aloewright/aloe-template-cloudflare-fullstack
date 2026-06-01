@@ -11,13 +11,13 @@ import {
   Paper,
   SimpleGrid,
   Stack,
-  Table,
   Text,
 } from "@mantine/core";
 import { IconCheck, IconCopy } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
 import { getImage, getImageVariants, type VariantDims } from "@/lib/cf-api";
 import type { MediaItem } from "@/lib/media";
+import { MediaEditPanel } from "@/components/MediaEditPanel";
 
 function variantName(url: string): string {
   try {
@@ -40,22 +40,6 @@ function dimsLabel(d: VariantDims | undefined): string {
   return "auto";
 }
 
-function MetaTable({ meta }: { meta: Record<string, string> }) {
-  const entries = Object.entries(meta);
-  if (entries.length === 0) return null;
-  return (
-    <Table>
-      <Table.Tbody>
-        {entries.map(([k, v]) => (
-          <Table.Tr key={k}>
-            <Table.Td>{k}</Table.Td>
-            <Table.Td>{v}</Table.Td>
-          </Table.Tr>
-        ))}
-      </Table.Tbody>
-    </Table>
-  );
-}
 
 function CopyBox({ title, subtitle, url }: { title: string; subtitle: string; url: string }) {
   return (
@@ -110,7 +94,7 @@ function ImageDetail({ item }: { item: MediaItem }) {
       <Text size="sm" c="dimmed">
         Uploaded {item.createdAt || "—"}
       </Text>
-      <MetaTable meta={item.meta} />
+      <MediaEditPanel item={item} />
       <Text size="sm" fw={600}>
         Variants — click to copy URL
       </Text>
@@ -169,7 +153,7 @@ function VideoDetail({ item }: { item: MediaItem }) {
         ) : null}
         {item.requireSignedURLs && <Badge color="orange">signed URLs</Badge>}
       </Group>
-      <MetaTable meta={item.meta} />
+      <MediaEditPanel item={item} />
       {item.links.length > 0 && (
         <>
           <Text size="sm" fw={600}>

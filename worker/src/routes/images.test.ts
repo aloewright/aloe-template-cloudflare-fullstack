@@ -96,4 +96,64 @@ describe("imagesRoute", () => {
     expect(body.variants.FHD).toEqual({ width: 1920, height: 1080 });
     expect(body.variants.public).toEqual({ width: null, height: null });
   });
+
+  it("PATCH composes metadata (incl. name) + requireSignedURLs and returns the item", async () => {
+    const fetchMock = vi.fn(
+      async () =>
+        new Response(
+          JSON.stringify({
+            success: true,
+            result: {
+              id: "img1",
+              filename: "cat.png",
+              requireSignedURLs: true,
+              meta: { name: "Kitty", tag: "x" },
+              variants: ["https://imagedelivery.net/HASH/img1/public"],
+            },
+          }),
+          { status: 200 },
+        ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const res = await app(connectedService).request("/api/images/img1", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: "Kitty", meta: { tag: "x" }, requireSignedURLs: true }),
+    });
+    expect(res.status).toBe(200);
+    const [url, init] = fetchMock.mock.calls[0]! as unknown as [string, RequestInit];
+    expect(url).toBe("https://api.cloudflare.com/client/v4/accounts/acc1/images/v1/img1");
+    expect(init.method).toBe("PATCH");
+    expect(JSON.parse(init.body as string)).toEqual({
+      metadata: { tag: "x", name: "Kitty" },
+      requireSignedURLs: true,
+    });
+    const body = (await res.json()) as { id: string; meta: Record<string, string> };
+    expect(body.id).toBe("img1");
+    expect(body.meta.name).toBe("Kitty");
+  });
+
+  it("DELETE calls the CF delete endpoint", async () => {
+    const fetchMock = vi.fn(
+      async () => new Response(JSON.stringify({ success: true, result: {} }), { status: 200 }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const res = await app(connectedService).request("/api/images/img1", { method: "DELETE" });
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ ok: true });
+    const [url, init] = fetchMock.mock.calls[0]! as unknown as [string, RequestInit];
+    expect(url).toBe("https://api.cloudflare.com/client/v4/accounts/acc1/images/v1/img1");
+    expect(init.method).toBe("DELETE");
+  });
+
+  it("PATCH returns 409 when not connected", async () => {
+    const res = await app(disconnectedService).request("/api/images/img1", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: "{}",
+    });
+    expect(res.status).toBe(409);
+  });
 });

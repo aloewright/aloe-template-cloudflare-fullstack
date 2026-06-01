@@ -67,3 +67,29 @@ export const getImage = (id: string) =>
 export type VariantDims = { width: number | null; height: number | null };
 export const getImageVariants = () =>
   fetchJson<{ variants: Record<string, VariantDims> }>("/api/images/variants");
+
+export type MediaPatch = {
+  name?: string;
+  meta?: Record<string, string>;
+  requireSignedURLs?: boolean;
+};
+
+export const updateImage = (id: string, patch: MediaPatch) =>
+  fetchJson<ImageItem>(`/api/images/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(patch),
+  });
+
+export const deleteImage = (id: string) =>
+  fetchJson<{ ok: true }>(`/api/images/${encodeURIComponent(id)}`, { method: "DELETE" });
+
+export const updateStream = (uid: string, patch: MediaPatch) =>
+  fetchJson<StreamItem>(`/api/stream/${encodeURIComponent(uid)}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(patch),
+  });
+
+export const deleteStream = (uid: string) =>
+  fetchJson<{ ok: true }>(`/api/stream/${encodeURIComponent(uid)}`, { method: "DELETE" });

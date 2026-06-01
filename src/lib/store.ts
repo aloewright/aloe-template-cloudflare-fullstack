@@ -10,10 +10,12 @@ type UIState = {
   mediaType: MediaType;
   sort: SortKey;
   selected: MediaItem | null;
+  selectedIds: Record<string, boolean>;
   setView: (view: View) => void;
   setMediaType: (mediaType: MediaType) => void;
   setSort: (sort: SortKey) => void;
   setSelected: (selected: MediaItem | null) => void;
+  setSelectedIds: (ids: Record<string, boolean>) => void;
 };
 
 // UI/client state (view, filter, sort, drawer selection). Server data stays in
@@ -24,8 +26,10 @@ export const useUIStore = create<UIState>((set) => ({
   mediaType: "all",
   sort: "newest",
   selected: null,
+  selectedIds: {},
   setView: (view) => set({ view }),
   setMediaType: (mediaType) => set({ mediaType }),
   setSort: (sort) => set({ sort }),
   setSelected: (selected) => set({ selected }),
+  setSelectedIds: (selectedIds) => set({ selectedIds }),
 }));

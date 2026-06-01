@@ -6,13 +6,13 @@ import {
   flexRender,
   getCoreRowModel,
   getSortedRowModel,
-  type RowSelectionState,
   type SortingState,
   useReactTable,
 } from "@tanstack/react-table";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useRef, useState } from "react";
 import type { MediaItem } from "@/lib/media";
+import { useUIStore } from "@/lib/store";
 
 function fmtDuration(seconds: number | null): string {
   if (!seconds || seconds <= 0) return "—";
@@ -134,14 +134,16 @@ export function MediaTable({
   onOpen: (item: MediaItem) => void;
 }) {
   const [sorting, setSorting] = useState<SortingState>([]);
-  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+  const rowSelection = useUIStore((s) => s.selectedIds);
+  const setRowSelection = useUIStore((s) => s.setSelectedIds);
 
   const table = useReactTable({
     data: items,
     columns,
     state: { sorting, rowSelection },
     onSortingChange: setSorting,
-    onRowSelectionChange: setRowSelection,
+    onRowSelectionChange: (updater) =>
+      setRowSelection(typeof updater === "function" ? updater(rowSelection) : updater),
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     enableRowSelection: true,
