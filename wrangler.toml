@@ -1,22 +1,30 @@
-name = "template"
+name = "media-gallery"
 main = "worker/src/index.ts"
 compatibility_date = "2025-02-01"
 compatibility_flags = ["nodejs_compat"]
 
 assets = { directory = "dist" }
 
-# D1 binding. database_id is intentionally omitted so the
-# "Deploy to Cloudflare" flow auto-provisions a fresh D1 on first deploy.
-# After deploy, `wrangler d1 list` will show the assigned id; locals can
-# fill it back in if needed for direct CLI work.
+workers_dev = true
+
+# To serve from media.aloewright.me: that hostname currently has an existing
+# DNS record on the aloewright.me zone. Delete/repoint it in the Cloudflare
+# dashboard (DNS) first, then uncomment the block below and run `wrangler deploy`
+# to let wrangler provision the custom-domain hostname + certificate.
+# [[routes]]
+# pattern = "media.aloewright.me"
+# custom_domain = true
+
 [[d1_databases]]
 binding        = "DB"
-database_name  = "template"
+database_name  = "media-gallery"
+database_id    = "3406ba2c-2eee-4602-9575-d464a579f0af"
 migrations_dir = "worker/migrations"
 
 # Cloudflare Access (Zero Trust) — fill these in for your deployment.
 # Create a self-hosted Access application in Zero Trust > Access > Applications
-# pointing at this Worker's hostname, then copy its AUD tag here.
+# pointing at media.aloewright.me, then copy its AUD tag here.
+# Until these are real values AND Access is in front, the API returns 403.
 [vars]
 TEAM_DOMAIN = "https://CHANGE-ME.cloudflareaccess.com"
 POLICY_AUD = "CHANGE-ME-aud-tag"
