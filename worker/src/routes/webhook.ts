@@ -52,9 +52,7 @@ webhook.post("/", async (c) => {
         productId: sub.productId,
         priceId,
         status: sub.status,
-        currentPeriodEnd: sub.currentPeriodEnd
-          ? new Date(sub.currentPeriodEnd)
-          : null,
+        currentPeriodEnd: sub.currentPeriodEnd ? new Date(sub.currentPeriodEnd) : null,
         createdAt: new Date(),
         updatedAt: new Date(),
       })
@@ -63,9 +61,7 @@ webhook.post("/", async (c) => {
         set: {
           status: sub.status,
           priceId,
-          currentPeriodEnd: sub.currentPeriodEnd
-            ? new Date(sub.currentPeriodEnd)
-            : null,
+          currentPeriodEnd: sub.currentPeriodEnd ? new Date(sub.currentPeriodEnd) : null,
           updatedAt: new Date(),
         },
       });

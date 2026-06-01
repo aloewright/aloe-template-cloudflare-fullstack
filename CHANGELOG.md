@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Cloudflare Media Gallery (phase 1):** an Access-gated, single-user app that connects to a Cloudflare account (scoped API token stored AES-GCM-encrypted in D1) and browses all Cloudflare Images and Stream assets in a tabbed masonry gallery with read-only detail drawers. New Worker layer: `accessGuard` middleware verifying the Cloudflare Access JWT (`jose`), an encrypted `cf_connection` credentials store, a thin `cfFetch`/`cfJson` REST proxy, and `/api/settings`, `/api/me`, `/api/images`, `/api/stream` routes. Editing, uploads, transforms, and Stream clip/thumbnail/captions are planned follow-on phases.
 - README **Releases** section now embeds a table of recent releases (version, date, one-line headline) so the README itself summarizes the release history without requiring a click-through to GitHub. New entries appended on every release.
 
 ## [0.2.0] — 2026-05-28

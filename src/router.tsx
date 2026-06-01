@@ -1,9 +1,9 @@
 /* AGPL-3.0-or-later */
 import { createRootRoute, createRoute, createRouter, Outlet } from "@tanstack/react-router";
 import { ColorSchemeToggle } from "@/components/ColorSchemeToggle";
-import { Dashboard } from "@/routes/dashboard";
-import { Landing } from "@/routes/landing";
-import { requireUnlocked } from "@/lib/session";
+import { ensureConnected } from "@/lib/setup-guard";
+import { Gallery } from "@/routes/gallery";
+import { Settings } from "@/routes/settings";
 
 const rootRoute = createRootRoute({
   component: () => (
@@ -14,22 +14,20 @@ const rootRoute = createRootRoute({
   ),
 });
 
-const indexRoute = createRoute({
+const galleryRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/",
-  component: Landing,
+  loader: ensureConnected,
+  component: Gallery,
 });
 
-const dashboardRoute = createRoute({
+const settingsRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: "/dashboard",
-  // The loader runs before render. If !unlocked, requireUnlocked throws
-  // redirect({ to: "/" }) and TanStack Router handles the navigation.
-  loader: requireUnlocked,
-  component: Dashboard,
+  path: "/settings",
+  component: Settings,
 });
 
-const routeTree = rootRoute.addChildren([indexRoute, dashboardRoute]);
+const routeTree = rootRoute.addChildren([galleryRoute, settingsRoute]);
 
 export const router = createRouter({ routeTree });
 

@@ -1,7 +1,7 @@
 /* AGPL-3.0-or-later */
 import { Hono } from "hono";
-import { createPolar } from "../polar";
 import type { Bindings } from "../index";
+import { createPolar } from "../polar";
 
 export const checkout = new Hono<{ Bindings: Bindings }>();
 

@@ -1,9 +1,9 @@
 /* AGPL-3.0-or-later */
 import { Hono } from "hono";
 import { setCookie } from "hono/cookie";
+import type { Bindings } from "../index";
 import { createPolar } from "../polar";
 import { COOKIE_NAME } from "./session";
-import type { Bindings } from "../index";
 
 export const success = new Hono<{ Bindings: Bindings }>();
 
