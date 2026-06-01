@@ -13,14 +13,15 @@ import {
 import { IconSettings } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { ColorSchemeToggle } from "@/components/ColorSchemeToggle";
 import { MediaCard } from "@/components/MediaCard";
 import { MediaDetailDrawer } from "@/components/MediaDetailDrawer";
 import { MediaGrid } from "@/components/MediaGrid";
 import { MediaTable } from "@/components/MediaTable";
 import { getMe } from "@/lib/cf-api";
-import { fetchAllMedia, filterAndSort, type MediaItem, type SortKey } from "@/lib/media";
+import { fetchAllMedia, filterAndSort, type SortKey } from "@/lib/media";
+import { type MediaType, useUIStore } from "@/lib/store";
 
 const SORT_OPTIONS = [
   { value: "newest", label: "Newest first" },
@@ -41,10 +42,14 @@ export function Gallery() {
   const me = useQuery({ queryKey: ["me"], queryFn: getMe });
   const media = useQuery({ queryKey: ["media"], queryFn: fetchAllMedia });
 
-  const [view, setView] = useState<"grid" | "table">("grid");
-  const [type, setType] = useState<"all" | "image" | "video">("all");
-  const [sort, setSort] = useState<SortKey>("newest");
-  const [selected, setSelected] = useState<MediaItem | null>(null);
+  const view = useUIStore((s) => s.view);
+  const setView = useUIStore((s) => s.setView);
+  const type = useUIStore((s) => s.mediaType);
+  const setType = useUIStore((s) => s.setMediaType);
+  const sort = useUIStore((s) => s.sort);
+  const setSort = useUIStore((s) => s.setSort);
+  const selected = useUIStore((s) => s.selected);
+  const setSelected = useUIStore((s) => s.setSelected);
 
   const items = useMemo(
     () => filterAndSort(media.data ?? [], type, sort),
@@ -90,7 +95,7 @@ export function Gallery() {
             aria-label="Media type"
             data={TYPE_OPTIONS}
             value={type}
-            onChange={(v) => setType((v as "all" | "image" | "video") ?? "all")}
+            onChange={(v) => setType((v as MediaType) ?? "all")}
             allowDeselect={false}
             w={150}
           />

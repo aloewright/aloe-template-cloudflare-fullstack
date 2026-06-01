@@ -1,14 +1,20 @@
 /* AGPL-3.0-or-later */
 import "@mantine/core/styles.css";
 import "@mantine/notifications/styles.css";
+import "@mantine/spotlight/styles.css";
+import "@mantine/nprogress/styles.css";
 import "@/styles.css";
 
 import { ColorSchemeScript, mantineHtmlProps, MantineProvider } from "@mantine/core";
 import { ModalsProvider } from "@mantine/modals";
 import { Notifications } from "@mantine/notifications";
+import { NavigationProgress } from "@mantine/nprogress";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createRootRoute, HeadContent, Outlet, Scripts } from "@tanstack/react-router";
+import { HotkeysProvider } from "@tanstack/react-hotkeys";
 import { useState } from "react";
+import { AppSpotlight, RouteProgress } from "@/components/AppChrome";
+import { AppHotkeys } from "@/lib/hotkeys";
 import { theme } from "@/theme";
 
 export const Route = createRootRoute({
@@ -47,12 +53,18 @@ function RootComponent() {
       </head>
       <body>
         <MantineProvider theme={theme} defaultColorScheme="auto">
-          <QueryClientProvider client={queryClient}>
-            <ModalsProvider>
-              <Outlet />
-              <Notifications />
-            </ModalsProvider>
-          </QueryClientProvider>
+          <HotkeysProvider>
+            <QueryClientProvider client={queryClient}>
+              <ModalsProvider>
+                <NavigationProgress />
+                <RouteProgress />
+                <AppSpotlight />
+                <AppHotkeys />
+                <Outlet />
+                <Notifications />
+              </ModalsProvider>
+            </QueryClientProvider>
+          </HotkeysProvider>
         </MantineProvider>
         <Scripts />
       </body>
