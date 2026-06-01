@@ -25,5 +25,5 @@ migrations_dir = "worker/migrations"
 # pointing at media.aloewright.me, then copy its AUD tag here.
 # Until these are real values AND Access is in front, the API returns 403.
 [vars]
-TEAM_DOMAIN = "https://CHANGE-ME.cloudflareaccess.com"
-POLICY_AUD = "CHANGE-ME-aud-tag"
+TEAM_DOMAIN = "https://worthy.cloudflareaccess.com"
+POLICY_AUD = "a819d3b2f3c2de918f926bfb55da6fc592993c1250e2182ed84bc06b8666396f"
