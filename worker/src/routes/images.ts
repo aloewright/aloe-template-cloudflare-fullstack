@@ -130,7 +130,7 @@ export function imagesRoute(makeService: MakeService) {
       .json<{ name?: string; meta?: Record<string, string>; requireSignedURLs?: boolean }>()
       .catch(() => ({}) as { name?: string; meta?: Record<string, string>; requireSignedURLs?: boolean });
     const metadata = {
-      ...(body.meta ?? {}),
+      ...body.meta,
       ...(body.name !== undefined ? { name: body.name } : {}),
     };
     const patchBody: Record<string, unknown> = { metadata };

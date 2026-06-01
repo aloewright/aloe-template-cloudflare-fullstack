@@ -144,7 +144,7 @@ export function streamRoute(makeService: MakeService) {
     const body = await c.req
       .json<{ name?: string; meta?: Record<string, string>; requireSignedURLs?: boolean }>()
       .catch(() => ({}) as { name?: string; meta?: Record<string, string>; requireSignedURLs?: boolean });
-    const meta = { ...(body.meta ?? {}), ...(body.name !== undefined ? { name: body.name } : {}) };
+    const meta = { ...body.meta, ...(body.name !== undefined ? { name: body.name } : {}) };
     const updateBody: Record<string, unknown> = { meta };
     if (body.requireSignedURLs !== undefined) updateBody.requireSignedURLs = body.requireSignedURLs;
     const video = await cfJson<CfVideo>(creds, `/stream/${c.req.param("uid")}`, {
