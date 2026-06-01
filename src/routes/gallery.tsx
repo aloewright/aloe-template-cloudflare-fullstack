@@ -1,8 +1,9 @@
 /* AGPL-3.0-or-later */
-import { Container, Group, Tabs, Title } from "@mantine/core";
+import { ActionIcon, Container, Group, Tabs, Text, Title } from "@mantine/core";
 import { IconSettings } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
+import { ColorSchemeToggle } from "@/components/ColorSchemeToggle";
 import { ImagesPanel } from "@/components/ImagesPanel";
 import { StreamPanel } from "@/components/StreamPanel";
 import { getMe } from "@/lib/cf-api";
@@ -14,11 +15,23 @@ export function Gallery() {
     <Container size="xl" py="md">
       <Group justify="space-between" mb="md">
         <Title order={3}>Media Gallery</Title>
-        <Group gap="sm">
-          {me.data?.email && <span>{me.data.email}</span>}
-          <Link to="/settings" aria-label="Settings">
+        <Group gap="xs" align="center">
+          {me.data?.email && (
+            <Text size="sm" c="dimmed">
+              {me.data.email}
+            </Text>
+          )}
+          <ColorSchemeToggle />
+          <ActionIcon
+            component={Link}
+            to="/settings"
+            variant="subtle"
+            size="lg"
+            aria-label="Settings"
+            title="Settings"
+          >
             <IconSettings size={20} />
-          </Link>
+          </ActionIcon>
         </Group>
       </Group>
 

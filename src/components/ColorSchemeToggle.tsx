@@ -11,10 +11,6 @@ export function ColorSchemeToggle() {
     <ActionIcon
       variant="subtle"
       size="lg"
-      pos="fixed"
-      top={16}
-      right={16}
-      style={{ zIndex: 10 }}
       onClick={() => setColorScheme(isDark ? "light" : "dark")}
       aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
       title={isDark ? "Switch to light mode" : "Switch to dark mode"}

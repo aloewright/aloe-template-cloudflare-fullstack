@@ -1,17 +1,11 @@
 /* AGPL-3.0-or-later */
 import { createRootRoute, createRoute, createRouter, Outlet } from "@tanstack/react-router";
-import { ColorSchemeToggle } from "@/components/ColorSchemeToggle";
 import { ensureConnected } from "@/lib/setup-guard";
 import { Gallery } from "@/routes/gallery";
 import { Settings } from "@/routes/settings";
 
 const rootRoute = createRootRoute({
-  component: () => (
-    <>
-      <ColorSchemeToggle />
-      <Outlet />
-    </>
-  ),
+  component: () => <Outlet />,
 });
 
 const galleryRoute = createRoute({

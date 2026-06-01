@@ -4,6 +4,7 @@ import {
   Anchor,
   Button,
   Container,
+  Group,
   PasswordInput,
   Stack,
   Text,
@@ -14,6 +15,7 @@ import { useForm } from "@mantine/form";
 import { notifications } from "@mantine/notifications";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
+import { ColorSchemeToggle } from "@/components/ColorSchemeToggle";
 import { getSettings, saveSettings } from "@/lib/cf-api";
 
 export function Settings() {
@@ -46,13 +48,16 @@ export function Settings() {
   return (
     <Container size="sm" py="xl">
       <Stack gap="lg">
-        <div>
-          <Title order={2}>Connect Cloudflare</Title>
-          <Text c="dimmed" size="sm">
-            Paste a scoped API token (Images Read+Edit, Stream Read+Edit) and your account ID. The
-            token is stored encrypted and used only server-side.
-          </Text>
-        </div>
+        <Group justify="space-between" align="flex-start" wrap="nowrap">
+          <div>
+            <Title order={2}>Connect Cloudflare</Title>
+            <Text c="dimmed" size="sm">
+              Paste a scoped API token (Images Read+Edit, Stream Read+Edit) and your account ID. The
+              token is stored encrypted and used only server-side.
+            </Text>
+          </div>
+          <ColorSchemeToggle />
+        </Group>
 
         {status.data?.connected && (
           <Alert color="green" title="Connected">
