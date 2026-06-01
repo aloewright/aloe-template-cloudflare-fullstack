@@ -1,12 +1,41 @@
 /* AGPL-3.0-or-later */
 import { Hono } from "hono";
-import { cfJson } from "../lib/cf";
+import { type CfCreds, cfJson } from "../lib/cf";
 import { parseStreamCode, streamIframeUrl } from "../lib/urls";
 import type { ConnectionService } from "../services/connection";
 import type { AppEnv } from "../types";
 
 type MakeService = (env: AppEnv["Bindings"]) => ConnectionService;
 const PAGE = 50;
+
+// Private Stream videos need a signed token; rewrite the thumbnail + iframe
+// URLs to route through a per-video token so they load. Mints tokens in
+// parallel; failures leave the item's unsigned URLs (which 401) untouched.
+async function signStreamItems(
+  items: StreamItem[],
+  creds: CfCreds & { streamCode: string | null },
+): Promise<void> {
+  const targets = items.filter((i) => i.requireSignedURLs);
+  if (targets.length === 0) return;
+  await Promise.all(
+    targets.map(async (it) => {
+      try {
+        const res = await cfJson<{ token?: string }>(creds, `/stream/${it.uid}/token`, {
+          method: "POST",
+          body: "{}",
+        });
+        const token = res.token;
+        const code = creds.streamCode ?? parseStreamCode(it.thumbnail) ?? parseStreamCode(it.iframeUrl);
+        if (!token || !code) return;
+        const host = `https://customer-${code}.cloudflarestream.com/${token}`;
+        it.thumbnail = `${host}/thumbnails/thumbnail.jpg`;
+        it.iframeUrl = `${host}/iframe`;
+      } catch {
+        // leave unsigned URLs; the UI surfaces a notice for unplayable items
+      }
+    }),
+  );
+}
 
 type CfVideo = {
   uid: string;
@@ -63,6 +92,7 @@ export function streamRoute(makeService: MakeService) {
     if (cursor) qs.set("before", cursor);
     const videos = await cfJson<CfVideo[]>(creds, `/stream?${qs}`);
     const items = videos.map(toStreamItem);
+    await signStreamItems(items, creds);
     const last = videos[videos.length - 1];
     const nextCursor = videos.length === PAGE && last?.created ? last.created : null;
     return c.json({ videos: items, cursor: nextCursor });
@@ -72,7 +102,9 @@ export function streamRoute(makeService: MakeService) {
     const creds = await makeService(c.env).credentials();
     if (!creds) return c.json({ error: "Not connected" }, 409);
     const video = await cfJson<CfVideo>(creds, `/stream/${c.req.param("uid")}`);
-    return c.json(toStreamItem(video));
+    const item = toStreamItem(video);
+    await signStreamItems([item], creds);
+    return c.json(item);
   });
 
   return app;
