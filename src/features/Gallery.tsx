@@ -5,7 +5,6 @@ import {
   Center,
   Container,
   Group,
-  Loader,
   SegmentedControl,
   Select,
   Text,
@@ -18,6 +17,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { useMemo } from "react";
 import { ColorSchemeToggle } from "@/components/ColorSchemeToggle";
+import { LoadingAnimation } from "@/components/LoadingAnimation";
 import { MediaCard } from "@/components/MediaCard";
 import { MediaDetailDrawer } from "@/components/MediaDetailDrawer";
 import { MediaGrid } from "@/components/MediaGrid";
@@ -155,7 +155,7 @@ export function Gallery() {
 
       {media.isLoading ? (
         <Center py="xl">
-          <Loader />
+          <LoadingAnimation />
         </Center>
       ) : items.length === 0 ? (
         <Center py="xl">

@@ -7,7 +7,6 @@ import {
   Drawer,
   Group,
   Image,
-  Loader,
   Paper,
   SimpleGrid,
   Stack,
@@ -17,6 +16,7 @@ import { IconCheck, IconCopy } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
 import { getImage, getImageVariants, type VariantDims } from "@/lib/cf-api";
 import type { MediaItem } from "@/lib/media";
+import { LoadingAnimation } from "@/components/LoadingAnimation";
 import { MediaEditPanel } from "@/components/MediaEditPanel";
 
 function variantName(url: string): string {
@@ -100,7 +100,7 @@ function ImageDetail({ item }: { item: MediaItem }) {
       </Text>
       {detail.isLoading ? (
         <Center py="sm">
-          <Loader size="sm" />
+          <LoadingAnimation size={32} />
         </Center>
       ) : (
         <SimpleGrid cols={{ base: 2, sm: 3 }} spacing="xs">
