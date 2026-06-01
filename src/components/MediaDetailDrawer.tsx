@@ -27,6 +27,12 @@ function variantName(url: string): string {
   }
 }
 
+function fmtDuration(seconds: number): string {
+  const m = Math.floor(seconds / 60);
+  const s = Math.floor(seconds % 60);
+  return `${m}:${s.toString().padStart(2, "0")}`;
+}
+
 function dimsLabel(d: VariantDims | undefined): string {
   if (d?.width && d?.height) return `${d.width}×${d.height}`;
   if (d?.width) return `${d.width}px wide`;
@@ -151,6 +157,16 @@ function VideoDetail({ item }: { item: MediaItem }) {
       <Group gap="xs">
         <Badge variant="light">{item.id}</Badge>
         <Badge color={item.status === "ready" ? "green" : "gray"}>{item.status ?? "unknown"}</Badge>
+        {item.width && item.height ? (
+          <Badge variant="light" color="grape">
+            {item.width}×{item.height}
+          </Badge>
+        ) : null}
+        {item.duration && item.duration > 0 ? (
+          <Badge variant="light" color="gray">
+            {fmtDuration(item.duration)}
+          </Badge>
+        ) : null}
         {item.requireSignedURLs && <Badge color="orange">signed URLs</Badge>}
       </Group>
       <MetaTable meta={item.meta} />

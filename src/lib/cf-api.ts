@@ -27,6 +27,8 @@ export type StreamItem = {
   name: string;
   thumbnail: string;
   duration: number;
+  width: number | null;
+  height: number | null;
   status: string;
   readyToStream: boolean;
   requireSignedURLs: boolean;

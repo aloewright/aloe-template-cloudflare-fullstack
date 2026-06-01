@@ -66,6 +66,7 @@ type CfVideo = {
   thumbnail?: string;
   playback?: { hls?: string };
   duration?: number;
+  input?: { width?: number; height?: number };
   status?: { state?: string };
   readyToStream?: boolean;
   requireSignedURLs?: boolean;
@@ -78,6 +79,8 @@ type StreamItem = {
   name: string;
   thumbnail: string;
   duration: number;
+  width: number | null;
+  height: number | null;
   status: string;
   readyToStream: boolean;
   requireSignedURLs: boolean;
@@ -96,6 +99,8 @@ function toStreamItem(v: CfVideo): StreamItem {
     name: v.meta?.name ?? v.uid,
     thumbnail: v.thumbnail ?? built?.thumbnail ?? "",
     duration: v.duration ?? 0,
+    width: v.input?.width ?? null,
+    height: v.input?.height ?? null,
     status: v.status?.state ?? "unknown",
     readyToStream: v.readyToStream ?? false,
     requireSignedURLs: v.requireSignedURLs ?? false,

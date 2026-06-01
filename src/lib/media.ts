@@ -18,6 +18,8 @@ export type MediaItem = {
   requireSignedURLs: boolean;
   // video-only (null/empty for images)
   duration: number | null;
+  width: number | null;
+  height: number | null;
   status: string | null;
   readyToStream: boolean | null;
   iframeUrl: string | null;
@@ -38,6 +40,8 @@ function imageToMedia(i: ImageItem): MediaItem {
     createdAt: i.uploaded,
     requireSignedURLs: i.requireSignedURLs,
     duration: null,
+    width: null,
+    height: null,
     status: null,
     readyToStream: null,
     iframeUrl: null,
@@ -56,6 +60,8 @@ function streamToMedia(v: StreamItem): MediaItem {
     createdAt: v.created,
     requireSignedURLs: v.requireSignedURLs,
     duration: v.duration,
+    width: v.width,
+    height: v.height,
     status: v.status,
     readyToStream: v.readyToStream,
     iframeUrl: v.iframeUrl,
