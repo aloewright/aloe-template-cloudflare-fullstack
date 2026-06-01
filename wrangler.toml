@@ -7,13 +7,12 @@ assets = { directory = "dist" }
 
 workers_dev = true
 
-# To serve from media.aloewright.me: that hostname currently has an existing
-# DNS record on the aloewright.me zone. Delete/repoint it in the Cloudflare
-# dashboard (DNS) first, then uncomment the block below and run `wrangler deploy`
-# to let wrangler provision the custom-domain hostname + certificate.
-# [[routes]]
-# pattern = "media.aloewright.me"
-# custom_domain = true
+# Attach to the existing (already proxied) media.aloewright.me hostname via a
+# Workers route — no DNS record is created/managed by wrangler, so this works
+# alongside the pre-existing proxied record. Remove this block to detach.
+[[routes]]
+pattern = "media.aloewright.me/*"
+zone_name = "aloewright.me"
 
 [[d1_databases]]
 binding        = "DB"
