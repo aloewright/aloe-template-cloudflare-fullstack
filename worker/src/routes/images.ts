@@ -123,5 +123,33 @@ export function imagesRoute(makeService: MakeService) {
     return c.json(item);
   });
 
+  app.patch("/:id", async (c) => {
+    const creds = await makeService(c.env).credentials();
+    if (!creds) return c.json({ error: "Not connected" }, 409);
+    const body = await c.req
+      .json<{ name?: string; meta?: Record<string, string>; requireSignedURLs?: boolean }>()
+      .catch(() => ({}) as { name?: string; meta?: Record<string, string>; requireSignedURLs?: boolean });
+    const metadata = {
+      ...(body.meta ?? {}),
+      ...(body.name !== undefined ? { name: body.name } : {}),
+    };
+    const patchBody: Record<string, unknown> = { metadata };
+    if (body.requireSignedURLs !== undefined) patchBody.requireSignedURLs = body.requireSignedURLs;
+    const img = await cfJson<CfImage>(creds, `/images/v1/${c.req.param("id")}`, {
+      method: "PATCH",
+      body: JSON.stringify(patchBody),
+    });
+    const item = toImageItem(img);
+    await signItemFull(item, creds);
+    return c.json(item);
+  });
+
+  app.delete("/:id", async (c) => {
+    const creds = await makeService(c.env).credentials();
+    if (!creds) return c.json({ error: "Not connected" }, 409);
+    await cfJson(creds, `/images/v1/${c.req.param("id")}`, { method: "DELETE" });
+    return c.json({ ok: true });
+  });
+
   return app;
 }
