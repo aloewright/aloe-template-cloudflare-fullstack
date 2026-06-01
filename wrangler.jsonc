@@ -6,7 +6,7 @@
   "main": "@tanstack/react-start/server-entry",
   "observability": { "enabled": true },
   "workers_dev": true,
-  "routes": [{ "pattern": "media.aloewright.me/*", "zone_name": "aloewright.me" }],
+  "routes": [{ "pattern": "media.aloewright.me", "custom_domain": true }],
   "d1_databases": [
     {
       "binding": "DB",
