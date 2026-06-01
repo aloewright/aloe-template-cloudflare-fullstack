@@ -1,15 +1,55 @@
 /* AGPL-3.0-or-later */
-import { ActionIcon, Container, Group, Tabs, Text, Title } from "@mantine/core";
+import {
+  ActionIcon,
+  Center,
+  Container,
+  Group,
+  Loader,
+  SegmentedControl,
+  Select,
+  Text,
+  Title,
+} from "@mantine/core";
 import { IconSettings } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
 import { ColorSchemeToggle } from "@/components/ColorSchemeToggle";
-import { ImagesPanel } from "@/components/ImagesPanel";
-import { StreamPanel } from "@/components/StreamPanel";
+import { MediaCard } from "@/components/MediaCard";
+import { MediaDetailDrawer } from "@/components/MediaDetailDrawer";
+import { MediaGrid } from "@/components/MediaGrid";
+import { MediaTable } from "@/components/MediaTable";
 import { getMe } from "@/lib/cf-api";
+import { fetchAllMedia, filterAndSort, type MediaItem, type SortKey } from "@/lib/media";
+
+const SORT_OPTIONS = [
+  { value: "newest", label: "Newest first" },
+  { value: "oldest", label: "Oldest first" },
+  { value: "nameAsc", label: "Name A→Z" },
+  { value: "nameDesc", label: "Name Z→A" },
+  { value: "type", label: "Type" },
+  { value: "duration", label: "Duration" },
+];
+
+const TYPE_OPTIONS = [
+  { value: "all", label: "All media" },
+  { value: "image", label: "Images" },
+  { value: "video", label: "Videos" },
+];
 
 export function Gallery() {
   const me = useQuery({ queryKey: ["me"], queryFn: getMe });
+  const media = useQuery({ queryKey: ["media"], queryFn: fetchAllMedia });
+
+  const [view, setView] = useState<"grid" | "table">("grid");
+  const [type, setType] = useState<"all" | "image" | "video">("all");
+  const [sort, setSort] = useState<SortKey>("newest");
+  const [selected, setSelected] = useState<MediaItem | null>(null);
+
+  const items = useMemo(
+    () => filterAndSort(media.data ?? [], type, sort),
+    [media.data, type, sort],
+  );
 
   return (
     <Container size="xl" py="md">
@@ -35,18 +75,55 @@ export function Gallery() {
         </Group>
       </Group>
 
-      <Tabs defaultValue="images">
-        <Tabs.List mb="md">
-          <Tabs.Tab value="images">Images</Tabs.Tab>
-          <Tabs.Tab value="stream">Stream</Tabs.Tab>
-        </Tabs.List>
-        <Tabs.Panel value="images">
-          <ImagesPanel />
-        </Tabs.Panel>
-        <Tabs.Panel value="stream">
-          <StreamPanel />
-        </Tabs.Panel>
-      </Tabs>
+      <Group justify="space-between" mb="md" wrap="wrap">
+        <SegmentedControl
+          value={view}
+          onChange={(v) => setView(v as "grid" | "table")}
+          data={[
+            { value: "grid", label: "Grid" },
+            { value: "table", label: "Table" },
+          ]}
+        />
+        <Group gap="sm">
+          <Select
+            label={undefined}
+            aria-label="Media type"
+            data={TYPE_OPTIONS}
+            value={type}
+            onChange={(v) => setType((v as "all" | "image" | "video") ?? "all")}
+            allowDeselect={false}
+            w={150}
+          />
+          <Select
+            aria-label="Sort by"
+            data={SORT_OPTIONS}
+            value={sort}
+            onChange={(v) => setSort((v as SortKey) ?? "newest")}
+            allowDeselect={false}
+            w={170}
+          />
+        </Group>
+      </Group>
+
+      {media.isLoading ? (
+        <Center py="xl">
+          <Loader />
+        </Center>
+      ) : items.length === 0 ? (
+        <Center py="xl">
+          <Text c="dimmed">No media found.</Text>
+        </Center>
+      ) : view === "grid" ? (
+        <MediaGrid>
+          {items.map((item) => (
+            <MediaCard key={`${item.kind}-${item.id}`} item={item} onOpen={setSelected} />
+          ))}
+        </MediaGrid>
+      ) : (
+        <MediaTable items={items} onOpen={setSelected} />
+      )}
+
+      <MediaDetailDrawer item={selected} onClose={() => setSelected(null)} />
     </Container>
   );
 }

@@ -67,4 +67,33 @@ describe("imagesRoute", () => {
       thumbnailUrl: "https://imagedelivery.net/HASH/img1/public",
     });
   });
+
+  it("maps variant definitions to dimensions (and is not shadowed by /:id)", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(
+        async () =>
+          new Response(
+            JSON.stringify({
+              success: true,
+              result: {
+                variants: {
+                  FHD: { options: { width: 1920, height: 1080, fit: "scale-down" } },
+                  public: { options: { fit: "scale-down" } },
+                },
+              },
+            }),
+            { status: 200 },
+          ),
+      ),
+    );
+
+    const res = await app(connectedService).request("/api/images/variants");
+    const body = (await res.json()) as {
+      variants: Record<string, { width: number | null; height: number | null }>;
+    };
+    expect(res.status).toBe(200);
+    expect(body.variants.FHD).toEqual({ width: 1920, height: 1080 });
+    expect(body.variants.public).toEqual({ width: null, height: null });
+  });
 });

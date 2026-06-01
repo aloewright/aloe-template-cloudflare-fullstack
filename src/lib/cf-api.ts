@@ -54,3 +54,11 @@ export const listImages = (cursor?: string) =>
 
 export const listStream = (cursor?: string) =>
   fetchJson<StreamPage>(`/api/stream${cursor ? `?cursor=${encodeURIComponent(cursor)}` : ""}`);
+
+// Image detail with fully-signed variant URLs (the list only signs thumbnails).
+export const getImage = (id: string) =>
+  fetchJson<ImageItem>(`/api/images/${encodeURIComponent(id)}`);
+
+export type VariantDims = { width: number | null; height: number | null };
+export const getImageVariants = () =>
+  fetchJson<{ variants: Record<string, VariantDims> }>("/api/images/variants");

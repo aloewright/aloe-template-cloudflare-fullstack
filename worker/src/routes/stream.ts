@@ -25,7 +25,8 @@ async function signStreamItems(
           body: "{}",
         });
         const token = res.token;
-        const code = creds.streamCode ?? parseStreamCode(it.thumbnail) ?? parseStreamCode(it.iframeUrl);
+        const code =
+          creds.streamCode ?? parseStreamCode(it.thumbnail) ?? parseStreamCode(it.iframeUrl);
         if (!token || !code) return;
         const host = `https://customer-${code}.cloudflarestream.com/${token}`;
         it.thumbnail = `${host}/thumbnails/thumbnail.jpg`;

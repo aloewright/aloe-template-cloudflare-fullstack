@@ -16,17 +16,19 @@
          theme: use the saved preference if set, otherwise follow the OS setting
          (matches Mantine's defaultColorScheme="auto" + localStorage manager). -->
     <script>
-      (function () {
+      (() => {
         try {
-          var stored = localStorage.getItem("mantine-color-scheme-value");
-          var scheme =
+          const stored = localStorage.getItem("mantine-color-scheme-value");
+          const scheme =
             stored === "light" || stored === "dark"
               ? stored
               : window.matchMedia("(prefers-color-scheme: dark)").matches
                 ? "dark"
                 : "light";
           document.documentElement.setAttribute("data-mantine-color-scheme", scheme);
-        } catch (e) {}
+        } catch {
+          /* ignore: fall back to Mantine's default */
+        }
       })();
     </script>
   </head>
