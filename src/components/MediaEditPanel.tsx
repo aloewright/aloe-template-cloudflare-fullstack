@@ -8,7 +8,7 @@ import { useState } from "react";
 import { deleteMediaItem, type MediaItem, updateMediaItem } from "@/lib/media";
 import { useUIStore } from "@/lib/store";
 
-type Row = { key: string; value: string };
+type Row = { id: string; key: string; value: string };
 
 export function MediaEditPanel({ item }: { item: MediaItem }) {
   const queryClient = useQueryClient();
@@ -18,7 +18,7 @@ export function MediaEditPanel({ item }: { item: MediaItem }) {
   const [rows, setRows] = useState<Row[]>(
     Object.entries(item.meta)
       .filter(([k]) => k !== "name")
-      .map(([key, value]) => ({ key, value })),
+      .map(([key, value], i) => ({ id: `r${i}`, key, value })),
   );
   const [requireSignedURLs, setRequireSignedURLs] = useState(item.requireSignedURLs);
 
@@ -73,12 +73,14 @@ export function MediaEditPanel({ item }: { item: MediaItem }) {
         </Text>
         <Stack gap="xs">
           {rows.map((r, i) => (
-            <Group key={i} gap="xs" wrap="nowrap">
+            <Group key={r.id} gap="xs" wrap="nowrap">
               <TextInput
                 placeholder="key"
                 value={r.key}
                 onChange={(e) =>
-                  setRows((rs) => rs.map((x, j) => (j === i ? { ...x, key: e.currentTarget.value } : x)))
+                  setRows((rs) =>
+                    rs.map((x, j) => (j === i ? { ...x, key: e.currentTarget.value } : x)),
+                  )
                 }
                 w={140}
               />
@@ -86,7 +88,9 @@ export function MediaEditPanel({ item }: { item: MediaItem }) {
                 placeholder="value"
                 value={r.value}
                 onChange={(e) =>
-                  setRows((rs) => rs.map((x, j) => (j === i ? { ...x, value: e.currentTarget.value } : x)))
+                  setRows((rs) =>
+                    rs.map((x, j) => (j === i ? { ...x, value: e.currentTarget.value } : x)),
+                  )
                 }
                 style={{ flex: 1 }}
               />
@@ -104,7 +108,7 @@ export function MediaEditPanel({ item }: { item: MediaItem }) {
             variant="subtle"
             size="xs"
             leftSection={<IconPlus size={14} />}
-            onClick={() => setRows((rs) => [...rs, { key: "", value: "" }])}
+            onClick={() => setRows((rs) => [...rs, { id: crypto.randomUUID(), key: "", value: "" }])}
             style={{ alignSelf: "flex-start" }}
           >
             Add field

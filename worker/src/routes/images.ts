@@ -128,12 +128,18 @@ export function imagesRoute(makeService: MakeService) {
     if (!creds) return c.json({ error: "Not connected" }, 409);
     const body = await c.req
       .json<{ name?: string; meta?: Record<string, string>; requireSignedURLs?: boolean }>()
-      .catch(() => ({}) as { name?: string; meta?: Record<string, string>; requireSignedURLs?: boolean });
-    const metadata = {
-      ...body.meta,
-      ...(body.name !== undefined ? { name: body.name } : {}),
-    };
-    const patchBody: Record<string, unknown> = { metadata };
+      .catch(
+        () => ({}) as { name?: string; meta?: Record<string, string>; requireSignedURLs?: boolean },
+      );
+    const patchBody: Record<string, unknown> = {};
+    // Only send metadata when the caller actually provided some, so a
+    // requireSignedURLs-only update never wipes existing metadata.
+    if (body.meta !== undefined || body.name !== undefined) {
+      patchBody.metadata = {
+        ...body.meta,
+        ...(body.name !== undefined ? { name: body.name } : {}),
+      };
+    }
     if (body.requireSignedURLs !== undefined) patchBody.requireSignedURLs = body.requireSignedURLs;
     const img = await cfJson<CfImage>(creds, `/images/v1/${c.req.param("id")}`, {
       method: "PATCH",

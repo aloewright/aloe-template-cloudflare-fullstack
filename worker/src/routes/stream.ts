@@ -143,9 +143,15 @@ export function streamRoute(makeService: MakeService) {
     if (!creds) return c.json({ error: "Not connected" }, 409);
     const body = await c.req
       .json<{ name?: string; meta?: Record<string, string>; requireSignedURLs?: boolean }>()
-      .catch(() => ({}) as { name?: string; meta?: Record<string, string>; requireSignedURLs?: boolean });
-    const meta = { ...body.meta, ...(body.name !== undefined ? { name: body.name } : {}) };
-    const updateBody: Record<string, unknown> = { meta };
+      .catch(
+        () => ({}) as { name?: string; meta?: Record<string, string>; requireSignedURLs?: boolean },
+      );
+    const updateBody: Record<string, unknown> = {};
+    // Only send meta when the caller provided some, so a requireSignedURLs-only
+    // update never wipes existing video metadata.
+    if (body.meta !== undefined || body.name !== undefined) {
+      updateBody.meta = { ...body.meta, ...(body.name !== undefined ? { name: body.name } : {}) };
+    }
     if (body.requireSignedURLs !== undefined) updateBody.requireSignedURLs = body.requireSignedURLs;
     const video = await cfJson<CfVideo>(creds, `/stream/${c.req.param("uid")}`, {
       method: "POST",
