@@ -36,12 +36,12 @@ Initial release.
 
 - **Single Cloudflare Worker** that serves both the React SPA (via Workers Assets) and the Hono API from one origin.
 - **Hono router** in `worker/src/index.ts` mounting six route modules under `worker/src/routes/`:
-  - `GET  /api/health`         — service heartbeat
-  - `GET  /api/session`        — reads `demo_unlock` cookie, returns `{ unlocked }`
-  - `POST /api/demo/unlock`    — sets the cookie with no payment ("Enter demo" path)
-  - `POST /api/checkout`       — creates a Polar checkout, returns `{ url }`
+  - `GET  /api/health` — service heartbeat
+  - `GET  /api/session` — reads `demo_unlock` cookie, returns `{ unlocked }`
+  - `POST /api/demo/unlock` — sets the cookie with no payment ("Enter demo" path)
+  - `POST /api/checkout` — creates a Polar checkout, returns `{ url }`
   - `GET  /api/checkout/success` — Polar redirect target; verifies + sets cookie + 302 to `/dashboard`
-  - `POST /api/webhook/polar`  — HMAC-verifies and upserts a `subscriptions` row in D1
+  - `POST /api/webhook/polar` — HMAC-verifies and upserts a `subscriptions` row in D1
 - **Polar billing** via `@polar-sh/sdk` (`worker/src/polar.ts`).
 - **D1 + Drizzle** with `notes` and `subscriptions` tables; migrations under `worker/migrations/`.
 - **Better Auth scaffolded** in `worker/src/auth.ts` but intentionally unwired; swap-in instructions in the docs.

@@ -6,11 +6,7 @@
     "codeComments": true,
     "explanations": true
   },
-  "domains": [
-    "typescript",
-    "vite",
-    "react"
-  ],
+  "domains": ["typescript", "vite", "react"],
   "suggestedBy": "ecc-tools-repo-analysis",
   "createdAt": "2026-04-30T22:35:50.057Z"
 }
