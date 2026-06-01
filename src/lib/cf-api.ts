@@ -20,6 +20,8 @@ export type ImageItem = {
 };
 export type ImagesPage = { images: ImageItem[]; continuationToken: string | null };
 
+export type StreamLink = { label: string; sublabel: string; url: string };
+
 export type StreamItem = {
   uid: string;
   name: string;
@@ -30,6 +32,7 @@ export type StreamItem = {
   requireSignedURLs: boolean;
   thumbnailTimestampPct: number;
   iframeUrl: string;
+  links: StreamLink[];
   meta: Record<string, string>;
   created: string;
 };

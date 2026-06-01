@@ -1,16 +1,37 @@
 /* AGPL-3.0-or-later */
 import { Hono } from "hono";
 import { type CfCreds, cfJson } from "../lib/cf";
-import { parseStreamCode, streamIframeUrl } from "../lib/urls";
+import { parseStreamCode } from "../lib/urls";
 import type { ConnectionService } from "../services/connection";
 import type { AppEnv } from "../types";
 
 type MakeService = (env: AppEnv["Bindings"]) => ConnectionService;
 const PAGE = 50;
 
-// Private Stream videos need a signed token; rewrite the thumbnail + iframe
-// URLs to route through a per-video token so they load. Mints tokens in
-// parallel; failures leave the item's unsigned URLs (which 401) untouched.
+type StreamLink = { label: string; sublabel: string; url: string };
+
+// Build the standard delivery URLs for a Stream video. `ref` is the video uid
+// (public) or a signed token (private). All routes hang off the same host.
+function streamLinks(
+  code: string,
+  ref: string,
+): { thumbnail: string; iframeUrl: string; links: StreamLink[] } {
+  const host = `https://customer-${code}.cloudflarestream.com/${ref}`;
+  return {
+    thumbnail: `${host}/thumbnails/thumbnail.jpg`,
+    iframeUrl: `${host}/iframe`,
+    links: [
+      { label: "HLS", sublabel: "adaptive .m3u8", url: `${host}/manifest/video.m3u8` },
+      { label: "DASH", sublabel: "adaptive .mpd", url: `${host}/manifest/video.mpd` },
+      { label: "Embed", sublabel: "iframe", url: `${host}/iframe` },
+      { label: "Thumbnail", sublabel: ".jpg", url: `${host}/thumbnails/thumbnail.jpg` },
+    ],
+  };
+}
+
+// Private Stream videos need a signed token; rewrite the thumbnail/iframe and
+// all delivery links to route through a per-video token so they work. Mints
+// tokens in parallel; failures leave the item's unsigned URLs untouched.
 async function signStreamItems(
   items: StreamItem[],
   creds: CfCreds & { streamCode: string | null },
@@ -28,9 +49,10 @@ async function signStreamItems(
         const code =
           creds.streamCode ?? parseStreamCode(it.thumbnail) ?? parseStreamCode(it.iframeUrl);
         if (!token || !code) return;
-        const host = `https://customer-${code}.cloudflarestream.com/${token}`;
-        it.thumbnail = `${host}/thumbnails/thumbnail.jpg`;
-        it.iframeUrl = `${host}/iframe`;
+        const built = streamLinks(code, token);
+        it.thumbnail = built.thumbnail;
+        it.iframeUrl = built.iframeUrl;
+        it.links = built.links;
       } catch {
         // leave unsigned URLs; the UI surfaces a notice for unplayable items
       }
@@ -61,22 +83,25 @@ type StreamItem = {
   requireSignedURLs: boolean;
   thumbnailTimestampPct: number;
   iframeUrl: string;
+  links: StreamLink[];
   meta: Record<string, string>;
   created: string;
 };
 
 function toStreamItem(v: CfVideo): StreamItem {
   const code = parseStreamCode(v.thumbnail || v.playback?.hls || "");
+  const built = code ? streamLinks(code, v.uid) : null;
   return {
     uid: v.uid,
     name: v.meta?.name ?? v.uid,
-    thumbnail: v.thumbnail ?? "",
+    thumbnail: v.thumbnail ?? built?.thumbnail ?? "",
     duration: v.duration ?? 0,
     status: v.status?.state ?? "unknown",
     readyToStream: v.readyToStream ?? false,
     requireSignedURLs: v.requireSignedURLs ?? false,
     thumbnailTimestampPct: v.thumbnailTimestampPct ?? 0,
-    iframeUrl: code ? streamIframeUrl(code, v.uid) : "",
+    iframeUrl: built?.iframeUrl ?? "",
+    links: built?.links ?? [],
     meta: v.meta ?? {},
     created: v.created ?? "",
   };

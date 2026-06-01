@@ -1,5 +1,11 @@
 /* AGPL-3.0-or-later */
-import { type ImageItem, listImages, listStream, type StreamItem } from "@/lib/cf-api";
+import {
+  type ImageItem,
+  listImages,
+  listStream,
+  type StreamItem,
+  type StreamLink,
+} from "@/lib/cf-api";
 
 export type MediaKind = "image" | "video";
 
@@ -10,11 +16,12 @@ export type MediaItem = {
   thumbnailUrl: string;
   createdAt: string; // ISO; uploaded (image) or created (video)
   requireSignedURLs: boolean;
-  // video-only (null for images)
+  // video-only (null/empty for images)
   duration: number | null;
   status: string | null;
   readyToStream: boolean | null;
   iframeUrl: string | null;
+  links: StreamLink[];
   // image-only
   variants: string[];
   meta: Record<string, string>;
@@ -34,6 +41,7 @@ function imageToMedia(i: ImageItem): MediaItem {
     status: null,
     readyToStream: null,
     iframeUrl: null,
+    links: [],
     variants: i.variants,
     meta: i.meta,
   };
@@ -51,6 +59,7 @@ function streamToMedia(v: StreamItem): MediaItem {
     status: v.status,
     readyToStream: v.readyToStream,
     iframeUrl: v.iframeUrl,
+    links: v.links,
     variants: [],
     meta: v.meta,
   };

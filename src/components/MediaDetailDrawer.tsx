@@ -51,8 +51,7 @@ function MetaTable({ meta }: { meta: Record<string, string> }) {
   );
 }
 
-function VariantBox({ url, dims }: { url: string; dims: VariantDims | undefined }) {
-  const name = variantName(url);
+function CopyBox({ title, subtitle, url }: { title: string; subtitle: string; url: string }) {
   return (
     <CopyButton value={url} timeout={1500}>
       {({ copied, copy }) => (
@@ -65,15 +64,15 @@ function VariantBox({ url, dims }: { url: string; dims: VariantDims | undefined 
             cursor: "pointer",
             borderColor: copied ? "var(--mantine-color-green-6)" : undefined,
           }}
-          title="Click to copy this variant's URL"
+          title="Click to copy this URL"
         >
           <Group justify="space-between" wrap="nowrap" gap="xs">
             <div style={{ minWidth: 0 }}>
               <Text size="sm" fw={600} lineClamp={1}>
-                {name}
+                {title}
               </Text>
               <Text size="xs" c="dimmed">
-                {copied ? "Copied!" : dimsLabel(dims)}
+                {copied ? "Copied!" : subtitle}
               </Text>
             </div>
             {copied ? (
@@ -116,7 +115,12 @@ function ImageDetail({ item }: { item: MediaItem }) {
       ) : (
         <SimpleGrid cols={{ base: 2, sm: 3 }} spacing="xs">
           {variants.map((v) => (
-            <VariantBox key={v} url={v} dims={dims[variantName(v)]} />
+            <CopyBox
+              key={v}
+              title={variantName(v)}
+              subtitle={dimsLabel(dims[variantName(v)])}
+              url={v}
+            />
           ))}
         </SimpleGrid>
       )}
@@ -150,6 +154,18 @@ function VideoDetail({ item }: { item: MediaItem }) {
         {item.requireSignedURLs && <Badge color="orange">signed URLs</Badge>}
       </Group>
       <MetaTable meta={item.meta} />
+      {item.links.length > 0 && (
+        <>
+          <Text size="sm" fw={600}>
+            Links — click to copy URL
+          </Text>
+          <SimpleGrid cols={{ base: 2, sm: 3 }} spacing="xs">
+            {item.links.map((l) => (
+              <CopyBox key={l.url} title={l.label} subtitle={l.sublabel} url={l.url} />
+            ))}
+          </SimpleGrid>
+        </>
+      )}
       <Text size="sm" c="dimmed">
         Created {item.createdAt || "—"}
       </Text>
