@@ -1,0 +1,22 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "media-gallery",
+  "compatibility_date": "2025-02-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "main": "@tanstack/react-start/server-entry",
+  "observability": { "enabled": true },
+  "workers_dev": true,
+  "routes": [{ "pattern": "media.aloewright.me/*", "zone_name": "aloewright.me" }],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "media-gallery",
+      "database_id": "3406ba2c-2eee-4602-9575-d464a579f0af",
+      "migrations_dir": "worker/migrations"
+    }
+  ],
+  "vars": {
+    "TEAM_DOMAIN": "https://worthy.cloudflareaccess.com",
+    "POLICY_AUD": "a819d3b2f3c2de918f926bfb55da6fc592993c1250e2182ed84bc06b8666396f"
+  }
+}
