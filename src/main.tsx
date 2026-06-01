@@ -28,7 +28,7 @@ if (!rootElement) throw new Error("Root element #root not found");
 
 ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
-    <MantineProvider theme={theme} defaultColorScheme="light">
+    <MantineProvider theme={theme} defaultColorScheme="auto">
       <ModalsProvider>
         <QueryClientProvider client={queryClient}>
           <RouterProvider router={router} />

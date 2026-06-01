@@ -12,6 +12,23 @@
     />
     <title>Cloudflare SaaS Template</title>
     <meta name="description" content="Reference SaaS on Cloudflare Workers: React + Mantine, Hono, D1, Polar billing." />
+    <!-- Apply the color scheme before React mounts to avoid a flash of the wrong
+         theme: use the saved preference if set, otherwise follow the OS setting
+         (matches Mantine's defaultColorScheme="auto" + localStorage manager). -->
+    <script>
+      (function () {
+        try {
+          var stored = localStorage.getItem("mantine-color-scheme-value");
+          var scheme =
+            stored === "light" || stored === "dark"
+              ? stored
+              : window.matchMedia("(prefers-color-scheme: dark)").matches
+                ? "dark"
+                : "light";
+          document.documentElement.setAttribute("data-mantine-color-scheme", scheme);
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
