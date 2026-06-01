@@ -1,10 +1,15 @@
 /* AGPL-3.0-or-later */
 import {
+  deleteImage,
+  deleteStream,
   type ImageItem,
   listImages,
   listStream,
+  type MediaPatch,
   type StreamItem,
   type StreamLink,
+  updateImage,
+  updateStream,
 } from "@/lib/cf-api";
 
 export type MediaKind = "image" | "video";
@@ -35,7 +40,7 @@ function imageToMedia(i: ImageItem): MediaItem {
   return {
     kind: "image",
     id: i.id,
-    name: i.filename,
+    name: i.meta?.name ?? i.filename,
     thumbnailUrl: i.thumbnailUrl,
     createdAt: i.uploaded,
     requireSignedURLs: i.requireSignedURLs,
@@ -135,4 +140,15 @@ export function filterAndSort(
       break;
   }
   return sorted;
+}
+
+export function updateMediaItem(
+  item: MediaItem,
+  patch: MediaPatch,
+): Promise<ImageItem | StreamItem> {
+  return item.kind === "image" ? updateImage(item.id, patch) : updateStream(item.id, patch);
+}
+
+export function deleteMediaItem(item: MediaItem): Promise<{ ok: true }> {
+  return item.kind === "image" ? deleteImage(item.id) : deleteStream(item.id);
 }
