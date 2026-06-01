@@ -35,23 +35,23 @@ A reference SaaS on Cloudflare Workers: React + Mantine on the front, Hono on a 
 
 ## Tech Stack
 
-| Layer | Choice | Why |
-| --- | --- | --- |
-| **Runtime** | Cloudflare Workers (`workerd`) | One process serves both the SPA and the API from edge POPs |
-| **Frontend** | React 19 + Vite 8 (Rolldown / Oxc) | Modern React, instant HMR, ~100 ms production builds |
-| **Routing** | TanStack Router | File-less, type-safe routes with full inference |
-| **Data fetching** | TanStack Query | Cache + revalidation primitives for client state |
-| **UI components** | Mantine 9 (core, hooks, notifications, modals, form) + Tabler icons | Full component library; dark-mode aware via CSS variables |
-| **Styling** | Tailwind CSS 4 + Nunito | Utility CSS via the new Vite plugin; Nunito loaded from Google Fonts |
-| **API** | Hono | Tiny, fast router that matches the Workers fetch handler |
-| **Database** | Cloudflare D1 (SQLite at the edge) | Pay-per-row, zero-config, replicated |
-| **ORM** | Drizzle | Schema-first, generates SQL migrations, runs in `workerd` |
-| **Billing** | Polar (`@polar-sh/sdk`) | Merchant of record — checkout sessions + webhook verification |
-| **Auth (scaffolded)** | Better Auth | D1-backed sessions, email+password ready — not wired in the reference deployment |
-| **Lint / Format** | Biome 2.4 | One tool, Rust-fast, replaces ESLint + Prettier |
-| **Build** | Vite 8 (Rolldown / Oxc) + `tsc --noEmit` | Type-check both client and worker tsconfigs |
-| **Deploy** | Wrangler 4 | Worker + assets in a single deploy |
-| **CI** | GitHub Actions + Dependabot | Auto-deploy on push to `main`; weekly dep bumps |
+| Layer                 | Choice                                                              | Why                                                                              |
+| --------------------- | ------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| **Runtime**           | Cloudflare Workers (`workerd`)                                      | One process serves both the SPA and the API from edge POPs                       |
+| **Frontend**          | React 19 + Vite 8 (Rolldown / Oxc)                                  | Modern React, instant HMR, ~100 ms production builds                             |
+| **Routing**           | TanStack Router                                                     | File-less, type-safe routes with full inference                                  |
+| **Data fetching**     | TanStack Query                                                      | Cache + revalidation primitives for client state                                 |
+| **UI components**     | Mantine 9 (core, hooks, notifications, modals, form) + Tabler icons | Full component library; dark-mode aware via CSS variables                        |
+| **Styling**           | Tailwind CSS 4 + Nunito                                             | Utility CSS via the new Vite plugin; Nunito loaded from Google Fonts             |
+| **API**               | Hono                                                                | Tiny, fast router that matches the Workers fetch handler                         |
+| **Database**          | Cloudflare D1 (SQLite at the edge)                                  | Pay-per-row, zero-config, replicated                                             |
+| **ORM**               | Drizzle                                                             | Schema-first, generates SQL migrations, runs in `workerd`                        |
+| **Billing**           | Polar (`@polar-sh/sdk`)                                             | Merchant of record — checkout sessions + webhook verification                    |
+| **Auth (scaffolded)** | Better Auth                                                         | D1-backed sessions, email+password ready — not wired in the reference deployment |
+| **Lint / Format**     | Biome 2.4                                                           | One tool, Rust-fast, replaces ESLint + Prettier                                  |
+| **Build**             | Vite 8 (Rolldown / Oxc) + `tsc --noEmit`                            | Type-check both client and worker tsconfigs                                      |
+| **Deploy**            | Wrangler 4                                                          | Worker + assets in a single deploy                                               |
+| **CI**                | GitHub Actions + Dependabot                                         | Auto-deploy on push to `main`; weekly dep bumps                                  |
 
 ---
 
@@ -219,10 +219,10 @@ npm run dev
 
 Runs two processes in parallel via `concurrently`:
 
-| Process | Port | What it does |
-| --- | --- | --- |
-| `vite` | `127.0.0.1:5173` | Serves the SPA with HMR; proxies `/api/*` to the Worker |
-| `wrangler dev` | `127.0.0.1:8787` | Runs the Worker against a local D1 simulation |
+| Process        | Port             | What it does                                            |
+| -------------- | ---------------- | ------------------------------------------------------- |
+| `vite`         | `127.0.0.1:5173` | Serves the SPA with HMR; proxies `/api/*` to the Worker |
+| `wrangler dev` | `127.0.0.1:8787` | Runs the Worker against a local D1 simulation           |
 
 Visit **http://127.0.0.1:5173** — that's the UI. The Worker is also addressable directly at `http://127.0.0.1:8787` if you want to hit the API without the proxy.
 
@@ -230,15 +230,15 @@ D1 in local dev uses a SQLite file under `.wrangler/state/` — it's gitignored,
 
 ### Useful scripts
 
-| Script | Purpose |
-| --- | --- |
-| `npm run dev` | Start Vite + Wrangler in parallel |
-| `npm run build` | Build the SPA to `dist/` and typecheck the Worker |
-| `npm run preview` | Preview the built SPA (no Worker) |
-| `npm run typecheck` | `tsc --noEmit` on both client and worker configs |
-| `npm run lint` | Biome lint (no writes) |
-| `npm run format` | Biome format (writes) |
-| `npm run check` | Biome lint + format + organize imports (writes) |
+| Script              | Purpose                                           |
+| ------------------- | ------------------------------------------------- |
+| `npm run dev`       | Start Vite + Wrangler in parallel                 |
+| `npm run build`     | Build the SPA to `dist/` and typecheck the Worker |
+| `npm run preview`   | Preview the built SPA (no Worker)                 |
+| `npm run typecheck` | `tsc --noEmit` on both client and worker configs  |
+| `npm run lint`      | Biome lint (no writes)                            |
+| `npm run format`    | Biome format (writes)                             |
+| `npm run check`     | Biome lint + format + organize imports (writes)   |
 
 ---
 
@@ -269,14 +269,14 @@ npx wrangler d1 execute <your-database-name> --remote --command "SELECT * FROM n
 
 Defined in `worker/src/index.ts`:
 
-| Method | Path | Behavior |
-| --- | --- | --- |
-| `GET` | `/api/health` | `{ ok, service, timestamp }` |
-| `GET` | `/api/session` | `{ unlocked: boolean }` — reads the `demo_unlock` cookie |
-| `POST` | `/api/demo/unlock` | Sets the `demo_unlock` cookie (no payment required) |
-| `POST` | `/api/checkout` | Creates a Polar checkout session, returns `{ url }` |
-| `GET` | `/api/checkout/success?checkout_id=…` | Polar redirect target — verifies the checkout, sets cookie, 302 to `/dashboard` |
-| `POST` | `/api/webhook/polar` | HMAC-verifies the Polar webhook and upserts a `subscriptions` row in D1 |
+| Method | Path                                  | Behavior                                                                        |
+| ------ | ------------------------------------- | ------------------------------------------------------------------------------- |
+| `GET`  | `/api/health`                         | `{ ok, service, timestamp }`                                                    |
+| `GET`  | `/api/session`                        | `{ unlocked: boolean }` — reads the `demo_unlock` cookie                        |
+| `POST` | `/api/demo/unlock`                    | Sets the `demo_unlock` cookie (no payment required)                             |
+| `POST` | `/api/checkout`                       | Creates a Polar checkout session, returns `{ url }`                             |
+| `GET`  | `/api/checkout/success?checkout_id=…` | Polar redirect target — verifies the checkout, sets cookie, 302 to `/dashboard` |
+| `POST` | `/api/webhook/polar`                  | HMAC-verifies the Polar webhook and upserts a `subscriptions` row in D1         |
 
 Anything not matching `/api/*` falls through to Workers Assets, which serves `dist/index.html` (the SPA).
 
@@ -286,10 +286,10 @@ Anything not matching `/api/*` falls through to Workers Assets, which serves `di
 
 The `docs/` directory is a separate Vite + React + Mantine + MDX SPA that deploys as its own Worker named `template-docs` (so it lives at `template-docs.<your-subdomain>.workers.dev`). It hosts 7 walkthrough pages — Intro, Architecture, Billing, Protected routes, Database, Deploy, Customizing — and inherits the same dark-mode toggle and Nunito typography as the app.
 
-| Script | Purpose |
-| --- | --- |
-| `npm run docs:dev` | Local dev on `127.0.0.1:3000` |
-| `npm run docs:build` | Production build to `docs/dist/` |
+| Script                | Purpose                              |
+| --------------------- | ------------------------------------ |
+| `npm run docs:dev`    | Local dev on `127.0.0.1:3000`        |
+| `npm run docs:build`  | Production build to `docs/dist/`     |
 | `npm run docs:deploy` | Build + `wrangler deploy --cwd docs` |
 
 The docs Worker has no D1 binding — it's static-assets-only with SPA fallback. See `docs/wrangler.toml`.
@@ -371,9 +371,9 @@ Bump the compatibility date quarterly to pick up new `workerd` features.
 
 Released versions are tagged on `main` and listed on the [Releases page](https://github.com/aloewright/my-cf-template/releases). Detailed notes live in [`CHANGELOG.md`](./CHANGELOG.md), which follows [Keep a Changelog](https://keepachangelog.com/) + [SemVer](https://semver.org).
 
-| Version | Date | Headline |
-| --- | --- | --- |
-| **[v0.2.0](https://github.com/aloewright/my-cf-template/releases/tag/v0.2.0)** | 2026-05-28 | Canonical-template README pass — title, lede, "What's inside", "Docs site", "Releases" sections; Node 22 prereq; overrides note expanded. |
+| Version                                                                        | Date       | Headline                                                                                                                                                                     |
+| ------------------------------------------------------------------------------ | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **[v0.2.0](https://github.com/aloewright/my-cf-template/releases/tag/v0.2.0)** | 2026-05-28 | Canonical-template README pass — title, lede, "What's inside", "Docs site", "Releases" sections; Node 22 prereq; overrides note expanded.                                    |
 | **[v0.1.0](https://github.com/aloewright/my-cf-template/releases/tag/v0.1.0)** | 2026-05-28 | Initial release — Worker + Hono + D1 + Drizzle + Polar billing + stub-gated dashboard, separate React+Mantine+MDX docs Worker, one-click deploy, GitHub Actions, Dependabot. |
 
 ---

@@ -7,8 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Re-platformed the UI to TanStack Start (SSR) on a single Cloudflare Worker.** The static React SPA (`index.html` + `main.tsx` + `assets=dist`) is replaced by TanStack Start file-based routes with edge SSR; the existing Hono API is mounted unchanged as a splat server route (`src/routes/api/$.ts` → `app.fetch(request, env)`), preserving one origin / one deploy. Bindings via `cloudflare:workers`. Toolchain swapped Biome → **oxlint + Prettier**. Added **Zustand** (UI state), **TanStack Table + Virtual** (sortable, selectable, virtualized table view), **@mantine/spotlight** (⌘K palette), **@mantine/nprogress** (route progress), **TanStack Hotkeys** (g/t/1-3/d/Esc), and installed **@mantine/dates/carousel/dropzone** (kept lazy for the editing phase). Data fetching stays client-side via TanStack Query.
+
 ### Added
 
+- **Media library views, filter & sort:** the gallery is now a single unified library (images + videos) with a Grid/Table view toggle, a Media-type filter (All / Images / Videos), and live Sort (newest, oldest, name A→Z/Z→A, type, duration). All media is loaded client-side and filtered/sorted in memory. The detail drawer lists each image variant as a clickable box labelled with its name + configured resolution (e.g. `FHD · 1920×1080`); clicking copies that variant's (signed) delivery URL. New `/api/images/variants` endpoint exposes variant dimensions, and image-detail responses now sign every variant URL (not just the thumbnail).
+- **Cloudflare Media Gallery (phase 1):** an Access-gated, single-user app that connects to a Cloudflare account (scoped API token stored AES-GCM-encrypted in D1) and browses all Cloudflare Images and Stream assets in a tabbed masonry gallery with read-only detail drawers. New Worker layer: `accessGuard` middleware verifying the Cloudflare Access JWT (`jose`), an encrypted `cf_connection` credentials store, a thin `cfFetch`/`cfJson` REST proxy, and `/api/settings`, `/api/me`, `/api/images`, `/api/stream` routes. Editing, uploads, transforms, and Stream clip/thumbnail/captions are planned follow-on phases.
 - README **Releases** section now embeds a table of recent releases (version, date, one-line headline) so the README itself summarizes the release history without requiring a click-through to GitHub. New entries appended on every release.
 
 ## [0.2.0] — 2026-05-28
@@ -34,12 +40,12 @@ Initial release.
 
 - **Single Cloudflare Worker** that serves both the React SPA (via Workers Assets) and the Hono API from one origin.
 - **Hono router** in `worker/src/index.ts` mounting six route modules under `worker/src/routes/`:
-  - `GET  /api/health`         — service heartbeat
-  - `GET  /api/session`        — reads `demo_unlock` cookie, returns `{ unlocked }`
-  - `POST /api/demo/unlock`    — sets the cookie with no payment ("Enter demo" path)
-  - `POST /api/checkout`       — creates a Polar checkout, returns `{ url }`
+  - `GET  /api/health` — service heartbeat
+  - `GET  /api/session` — reads `demo_unlock` cookie, returns `{ unlocked }`
+  - `POST /api/demo/unlock` — sets the cookie with no payment ("Enter demo" path)
+  - `POST /api/checkout` — creates a Polar checkout, returns `{ url }`
   - `GET  /api/checkout/success` — Polar redirect target; verifies + sets cookie + 302 to `/dashboard`
-  - `POST /api/webhook/polar`  — HMAC-verifies and upserts a `subscriptions` row in D1
+  - `POST /api/webhook/polar` — HMAC-verifies and upserts a `subscriptions` row in D1
 - **Polar billing** via `@polar-sh/sdk` (`worker/src/polar.ts`).
 - **D1 + Drizzle** with `notes` and `subscriptions` tables; migrations under `worker/migrations/`.
 - **Better Auth scaffolded** in `worker/src/auth.ts` but intentionally unwired; swap-in instructions in the docs.

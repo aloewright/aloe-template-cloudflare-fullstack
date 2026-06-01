@@ -27,3 +27,23 @@ export const subscriptions = sqliteTable("subscriptions", {
     .notNull()
     .$defaultFn(() => new Date()),
 });
+
+// Single-row table (id is always 1) holding the encrypted Cloudflare API token
+// and discovered delivery identifiers for this single-user app.
+export const cfConnection = sqliteTable("cf_connection", {
+  id: integer("id").primaryKey(),
+  accountId: text("account_id").notNull(),
+  accountHash: text("account_hash"),
+  streamCode: text("stream_code"),
+  tokenCipher: text("token_cipher").notNull(),
+  tokenIv: text("token_iv").notNull(),
+  flexibleVariantsEnabled: integer("flexible_variants_enabled", { mode: "boolean" })
+    .notNull()
+    .default(false),
+  createdAt: integer("created_at", { mode: "timestamp_ms" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: "timestamp_ms" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});

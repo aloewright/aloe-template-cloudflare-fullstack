@@ -1,0 +1,6 @@
+# Copy to .dev.vars for local `wrangler dev` (gitignored). Never commit real values.
+# AES-GCM key material for encrypting the stored Cloudflare API token.
+# Generate with: openssl rand -base64 32
+TOKEN_ENC_KEY="replace-with-output-of-openssl-rand-base64-32"
+# Bypass Cloudflare Access locally so the app is reachable without Zero Trust.
+DEV_BYPASS_ACCESS="1"

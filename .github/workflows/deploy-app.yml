@@ -7,13 +7,13 @@ on:
       - "src/**"
       - "worker/**"
       - "public/**"
-      - "index.html"
       - "package.json"
       - "package-lock.json"
       - "vite.config.ts"
       - "tsconfig.json"
       - "postcss.config.cjs"
-      - "wrangler.toml"
+      - "wrangler.jsonc"
+      - "worker-configuration.d.ts"
       - ".github/workflows/deploy-app.yml"
   workflow_dispatch:
 
