@@ -36,9 +36,12 @@ function fakeBucket(seed: Record<string, Uint8Array> = {}) {
       if (opts?.range) {
         const offset = opts.range.offset ?? 0;
         const end = opts.range.length != null ? offset + opts.range.length : buf.length;
-        return { body: new Response(buf.slice(offset, end)).body, size: buf.length };
+        return {
+          body: new Response(buf.slice(offset, end) as unknown as BodyInit).body,
+          size: buf.length,
+        };
       }
-      return { body: new Response(buf).body, size: buf.length };
+      return { body: new Response(buf as unknown as BodyInit).body, size: buf.length };
     },
     delete: async (key: string) => void m.delete(key),
   };
