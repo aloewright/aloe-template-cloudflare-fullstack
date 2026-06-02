@@ -16,6 +16,7 @@ import { notifications } from "@mantine/notifications";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { ColorSchemeToggle } from "@/components/ColorSchemeToggle";
+import { VariantManager } from "@/components/VariantManager";
 import { getSettings, saveSettings } from "@/lib/cf-api";
 
 export function Settings() {
@@ -86,6 +87,7 @@ export function Settings() {
             </Anchor>
           </Stack>
         </form>
+        {status.data?.connected && <VariantManager />}
       </Stack>
     </Container>
   );
