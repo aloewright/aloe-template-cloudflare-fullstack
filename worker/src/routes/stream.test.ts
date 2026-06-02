@@ -360,16 +360,22 @@ describe("streamRoute", () => {
   it("GET /:uid/captions maps the caption list", async () => {
     vi.stubGlobal(
       "fetch",
-      vi.fn(async () =>
-        new Response(
-          JSON.stringify({
-            success: true,
-            result: [
-              { language: "en", label: "English (auto-generated)", generated: true, status: "ready" },
-            ],
-          }),
-          { status: 200 },
-        ),
+      vi.fn(
+        async () =>
+          new Response(
+            JSON.stringify({
+              success: true,
+              result: [
+                {
+                  language: "en",
+                  label: "English (auto-generated)",
+                  generated: true,
+                  status: "ready",
+                },
+              ],
+            }),
+            { status: 200 },
+          ),
       ),
     );
     const res = await app(connected).request(`/api/stream/${UID}/captions`);
@@ -410,14 +416,19 @@ describe("streamRoute", () => {
     );
     vi.stubGlobal("fetch", fetchMock);
     const fd = new FormData();
-    fd.append("file", new File(["WEBVTT\n\n1\n00:00.000 --> 00:01.000\nhi"], "en.vtt", { type: "text/vtt" }));
+    fd.append(
+      "file",
+      new File(["WEBVTT\n\n1\n00:00.000 --> 00:01.000\nhi"], "en.vtt", { type: "text/vtt" }),
+    );
     const res = await app(connected).request(`/api/stream/${UID}/captions/en`, {
       method: "PUT",
       body: fd,
     });
     expect(res.status).toBe(200);
     const [url, init] = fetchMock.mock.calls[0]! as unknown as [string, RequestInit];
-    expect(url).toBe(`https://api.cloudflare.com/client/v4/accounts/acc1/stream/${UID}/captions/en`);
+    expect(url).toBe(
+      `https://api.cloudflare.com/client/v4/accounts/acc1/stream/${UID}/captions/en`,
+    );
     expect(init.method).toBe("PUT");
     expect(init.body).toBeInstanceOf(FormData);
   });
@@ -435,10 +446,14 @@ describe("streamRoute", () => {
       async () => new Response(JSON.stringify({ success: true, result: "" }), { status: 200 }),
     );
     vi.stubGlobal("fetch", fetchMock);
-    const res = await app(connected).request(`/api/stream/${UID}/captions/en`, { method: "DELETE" });
+    const res = await app(connected).request(`/api/stream/${UID}/captions/en`, {
+      method: "DELETE",
+    });
     expect(res.status).toBe(200);
     const [url, init] = fetchMock.mock.calls[0]! as unknown as [string, RequestInit];
-    expect(url).toBe(`https://api.cloudflare.com/client/v4/accounts/acc1/stream/${UID}/captions/en`);
+    expect(url).toBe(
+      `https://api.cloudflare.com/client/v4/accounts/acc1/stream/${UID}/captions/en`,
+    );
     expect(init.method).toBe("DELETE");
   });
 
