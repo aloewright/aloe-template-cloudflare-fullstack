@@ -3,6 +3,8 @@ import type { PolarEnv } from "./polar";
 
 export type Bindings = {
   DB: D1Database;
+  // Dedicated R2 bucket for audio files (see docs/superpowers/specs/2026-06-01-audio-design.md).
+  AUDIO_BUCKET: R2Bucket;
   // Cloudflare Access — see docs/superpowers/specs for setup.
   TEAM_DOMAIN: string; // https://<team>.cloudflareaccess.com
   POLICY_AUD: string; // Access application AUD tag
