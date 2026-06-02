@@ -60,6 +60,9 @@ async function signStreamItems(
   );
 }
 
+type CfCaption = { language?: string; label?: string; generated?: boolean; status?: string };
+const LANG_RE = /^[A-Za-z]{2,3}(-[A-Za-z0-9]{1,8})*$/;
+
 type CfDownload = { status?: string; url?: string; percentComplete?: number };
 type CfDownloads = { default?: CfDownload; audio?: CfDownload };
 type DownloadInfo = { status: string; percentComplete: number; url: string | null };
@@ -317,6 +320,77 @@ export function streamRoute(makeService: MakeService) {
       await cfJson(creds, `/stream/${uid}/downloads/${type}`, { method: "DELETE" });
     } catch {
       return c.json({ error: "Failed to remove download" }, 502);
+    }
+    return c.json({ ok: true });
+  });
+
+  app.get("/:uid/captions", async (c) => {
+    const creds = await makeService(c.env).credentials();
+    if (!creds) return c.json({ error: "Not connected" }, 409);
+    const uid = c.req.param("uid");
+    if (!/^[0-9a-f]{32}$/i.test(uid)) return c.json({ error: "Invalid uid" }, 400);
+    let list: CfCaption[];
+    try {
+      list = await cfJson<CfCaption[]>(creds, `/stream/${uid}/captions`);
+    } catch (e) {
+      if (e instanceof CfApiError && e.status === 404) list = [];
+      else return c.json({ error: "Failed to load captions" }, 502);
+    }
+    const captions = (list ?? []).map((x) => ({
+      language: x.language ?? "",
+      label: x.label ?? x.language ?? "",
+      generated: x.generated ?? false,
+      status: x.status ?? "unknown",
+    }));
+    return c.json({ captions });
+  });
+
+  app.post("/:uid/captions/:lang/generate", async (c) => {
+    const creds = await makeService(c.env).credentials();
+    if (!creds) return c.json({ error: "Not connected" }, 409);
+    const uid = c.req.param("uid");
+    if (!/^[0-9a-f]{32}$/i.test(uid)) return c.json({ error: "Invalid uid" }, 400);
+    const lang = c.req.param("lang");
+    if (!LANG_RE.test(lang)) return c.json({ error: "Invalid language" }, 400);
+    try {
+      await cfJson(creds, `/stream/${uid}/captions/${lang}/generate`, { method: "POST" });
+    } catch {
+      return c.json({ error: "Failed to generate captions" }, 502);
+    }
+    return c.json({ ok: true });
+  });
+
+  app.put("/:uid/captions/:lang", async (c) => {
+    const creds = await makeService(c.env).credentials();
+    if (!creds) return c.json({ error: "Not connected" }, 409);
+    const uid = c.req.param("uid");
+    if (!/^[0-9a-f]{32}$/i.test(uid)) return c.json({ error: "Invalid uid" }, 400);
+    const lang = c.req.param("lang");
+    if (!LANG_RE.test(lang)) return c.json({ error: "Invalid language" }, 400);
+    const form = await c.req.formData().catch(() => null);
+    const file = form?.get("file");
+    if (!(file instanceof File)) return c.json({ error: "file is required" }, 400);
+    const out = new FormData();
+    out.append("file", file, file.name || `${lang}.vtt`);
+    try {
+      await cfJson(creds, `/stream/${uid}/captions/${lang}`, { method: "PUT", body: out });
+    } catch {
+      return c.json({ error: "Failed to upload caption" }, 502);
+    }
+    return c.json({ ok: true });
+  });
+
+  app.delete("/:uid/captions/:lang", async (c) => {
+    const creds = await makeService(c.env).credentials();
+    if (!creds) return c.json({ error: "Not connected" }, 409);
+    const uid = c.req.param("uid");
+    if (!/^[0-9a-f]{32}$/i.test(uid)) return c.json({ error: "Invalid uid" }, 400);
+    const lang = c.req.param("lang");
+    if (!LANG_RE.test(lang)) return c.json({ error: "Invalid language" }, 400);
+    try {
+      await cfJson(creds, `/stream/${uid}/captions/${lang}`, { method: "DELETE" });
+    } catch {
+      return c.json({ error: "Failed to delete caption" }, 502);
     }
     return c.json({ ok: true });
   });
