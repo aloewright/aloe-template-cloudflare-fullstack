@@ -196,4 +196,65 @@ describe("imagesRoute", () => {
     });
     expect(res.status).toBe(409);
   });
+
+  it("GET /:id/transform-download streams the transformed image as an attachment", async () => {
+    const fetchMock = vi.fn(
+      async () =>
+        new Response(new Uint8Array([1, 2, 3]), {
+          status: 200,
+          headers: { "Content-Type": "image/webp" },
+        }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    const res = await app(connectedService).request(
+      "/api/images/img1/transform-download?o=width%3D800%2Cfit%3Dcover&name=img1.webp",
+    );
+    expect(res.status).toBe(200);
+    const [url] = fetchMock.mock.calls[0]! as unknown as [string];
+    expect(url).toBe("https://imagedelivery.net/HASH/img1/width=800,fit=cover");
+    expect(res.headers.get("Content-Disposition")).toBe('attachment; filename="img1.webp"');
+    expect(res.headers.get("Content-Type")).toBe("image/webp");
+  });
+
+  it("GET /:id/transform-download returns 409 when not connected", async () => {
+    const res = await app(disconnectedService).request("/api/images/img1/transform-download?o=");
+    expect(res.status).toBe(409);
+  });
+
+  it("GET /:id/transform-download returns 502 when the upstream fails", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response("nope", { status: 404 })),
+    );
+    const res = await app(connectedService).request("/api/images/img1/transform-download?o=width%3D800");
+    expect(res.status).toBe(502);
+  });
+
+  it("POST /flexible-variants enables via the CF config endpoint and returns status", async () => {
+    const fetchMock = vi.fn(
+      async () => new Response(JSON.stringify({ success: true, result: {} }), { status: 200 }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    const setFlex = vi.fn(async () => {});
+    const svc = {
+      credentials: async () => creds,
+      setFlexibleVariants: setFlex,
+      getStatus: async () => ({ connected: true, accountId: "acc1", flexibleVariantsEnabled: true }),
+    } as unknown as ConnectionService;
+    const res = await app(svc).request("/api/images/flexible-variants", { method: "POST" });
+    expect(res.status).toBe(200);
+    const [url, init] = fetchMock.mock.calls[0]! as unknown as [string, RequestInit];
+    expect(url).toBe("https://api.cloudflare.com/client/v4/accounts/acc1/images/v1/config");
+    expect(init.method).toBe("PATCH");
+    expect(JSON.parse(init.body as string)).toEqual({ flexible_variants: true });
+    expect(setFlex).toHaveBeenCalledWith(true);
+    expect(await res.json()).toEqual({ connected: true, accountId: "acc1", flexibleVariantsEnabled: true });
+  });
+
+  it("POST /flexible-variants returns 409 when not connected", async () => {
+    const res = await app(disconnectedService).request("/api/images/flexible-variants", {
+      method: "POST",
+    });
+    expect(res.status).toBe(409);
+  });
 });

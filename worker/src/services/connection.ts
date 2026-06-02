@@ -24,6 +24,7 @@ export interface ConnectionService {
   connect(input: { accountId: string; token: string }): Promise<ConnectionStatus>;
   test(): Promise<ConnectionStatus>;
   credentials(): Promise<DecryptedCreds | null>;
+  setFlexibleVariants(enabled: boolean): Promise<void>;
 }
 
 type CfImageList = { images?: Array<{ variants?: string[] }> };
@@ -108,6 +109,9 @@ export function createConnectionService(store: ConnectionStore, encKey: string):
         streamCode: result.streamCode,
       });
       return statusFrom(await store.get());
+    },
+    async setFlexibleVariants(enabled: boolean) {
+      await store.setFlexibleVariants(enabled);
     },
   };
 }

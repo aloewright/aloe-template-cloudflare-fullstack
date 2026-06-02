@@ -19,6 +19,7 @@ export interface ConnectionStore {
     accountHash?: string | null;
     streamCode?: string | null;
   }): Promise<void>;
+  setFlexibleVariants(enabled: boolean): Promise<void>;
 }
 
 type DB = ReturnType<typeof createDatabase>;
@@ -60,6 +61,12 @@ export function d1ConnectionStore(db: DB): ConnectionStore {
       if (streamCode !== undefined) set.streamCode = streamCode;
       await db.update(cfConnection).set(set).where(eq(cfConnection.id, 1));
     },
+    async setFlexibleVariants(enabled) {
+      await db
+        .update(cfConnection)
+        .set({ flexibleVariantsEnabled: enabled, updatedAt: new Date() })
+        .where(eq(cfConnection.id, 1));
+    },
   };
 }
 
@@ -76,6 +83,9 @@ export function inMemoryConnectionStore(initial: ConnectionRow | null = null): C
       if (!row) return;
       if (accountHash !== undefined) row.accountHash = accountHash;
       if (streamCode !== undefined) row.streamCode = streamCode;
+    },
+    async setFlexibleVariants(enabled) {
+      if (row) row.flexibleVariantsEnabled = enabled;
     },
   };
 }
