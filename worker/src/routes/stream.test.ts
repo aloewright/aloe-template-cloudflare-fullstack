@@ -356,4 +356,109 @@ describe("streamRoute", () => {
     const res = await app(disconnected).request(`/api/stream/${UID}/downloads`);
     expect(res.status).toBe(409);
   });
+
+  it("GET /:uid/captions maps the caption list", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(
+        async () =>
+          new Response(
+            JSON.stringify({
+              success: true,
+              result: [
+                {
+                  language: "en",
+                  label: "English (auto-generated)",
+                  generated: true,
+                  status: "ready",
+                },
+              ],
+            }),
+            { status: 200 },
+          ),
+      ),
+    );
+    const res = await app(connected).request(`/api/stream/${UID}/captions`);
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({
+      captions: [
+        { language: "en", label: "English (auto-generated)", generated: true, status: "ready" },
+      ],
+    });
+  });
+
+  it("POST /:uid/captions/:lang/generate calls the CF generate endpoint", async () => {
+    const fetchMock = vi.fn(
+      async () => new Response(JSON.stringify({ success: true, result: {} }), { status: 200 }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    const res = await app(connected).request(`/api/stream/${UID}/captions/en/generate`, {
+      method: "POST",
+    });
+    expect(res.status).toBe(200);
+    const [genUrl, genInit] = fetchMock.mock.calls[0]! as unknown as [string, RequestInit];
+    expect(String(genUrl)).toBe(
+      `https://api.cloudflare.com/client/v4/accounts/acc1/stream/${UID}/captions/en/generate`,
+    );
+    expect(genInit.method).toBe("POST");
+  });
+
+  it("POST generate returns 400 for an invalid language", async () => {
+    const res = await app(connected).request(`/api/stream/${UID}/captions/zz!/generate`, {
+      method: "POST",
+    });
+    expect(res.status).toBe(400);
+  });
+
+  it("PUT /:uid/captions/:lang uploads the vtt as multipart", async () => {
+    const fetchMock = vi.fn(
+      async () => new Response(JSON.stringify({ success: true, result: {} }), { status: 200 }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    const fd = new FormData();
+    fd.append(
+      "file",
+      new File(["WEBVTT\n\n1\n00:00.000 --> 00:01.000\nhi"], "en.vtt", { type: "text/vtt" }),
+    );
+    const res = await app(connected).request(`/api/stream/${UID}/captions/en`, {
+      method: "PUT",
+      body: fd,
+    });
+    expect(res.status).toBe(200);
+    const [url, init] = fetchMock.mock.calls[0]! as unknown as [string, RequestInit];
+    expect(url).toBe(
+      `https://api.cloudflare.com/client/v4/accounts/acc1/stream/${UID}/captions/en`,
+    );
+    expect(init.method).toBe("PUT");
+    expect(init.body).toBeInstanceOf(FormData);
+  });
+
+  it("PUT /:uid/captions/:lang returns 400 when no file", async () => {
+    const res = await app(connected).request(`/api/stream/${UID}/captions/en`, {
+      method: "PUT",
+      body: new FormData(),
+    });
+    expect(res.status).toBe(400);
+  });
+
+  it("DELETE /:uid/captions/:lang removes the caption", async () => {
+    const fetchMock = vi.fn(
+      async () => new Response(JSON.stringify({ success: true, result: "" }), { status: 200 }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    const res = await app(connected).request(`/api/stream/${UID}/captions/en`, {
+      method: "DELETE",
+    });
+    expect(res.status).toBe(200);
+    const [url, init] = fetchMock.mock.calls[0]! as unknown as [string, RequestInit];
+    expect(url).toBe(
+      `https://api.cloudflare.com/client/v4/accounts/acc1/stream/${UID}/captions/en`,
+    );
+    expect(init.method).toBe("DELETE");
+  });
+
+  it("captions endpoints return 409 when not connected", async () => {
+    const res = await app(disconnected).request(`/api/stream/${UID}/captions`);
+    expect(res.status).toBe(409);
+  });
 });

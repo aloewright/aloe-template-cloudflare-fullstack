@@ -168,3 +168,29 @@ export const deleteDownload = (uid: string, type: "default" | "audio") =>
   fetchJson<{ ok: true }>(`/api/stream/${encodeURIComponent(uid)}/downloads?type=${type}`, {
     method: "DELETE",
   });
+
+export type Caption = { language: string; label: string; generated: boolean; status: string };
+
+export const listCaptions = (uid: string) =>
+  fetchJson<{ captions: Caption[] }>(`/api/stream/${encodeURIComponent(uid)}/captions`);
+
+export const generateCaption = (uid: string, lang: string) =>
+  fetchJson<{ ok: true }>(
+    `/api/stream/${encodeURIComponent(uid)}/captions/${encodeURIComponent(lang)}/generate`,
+    { method: "POST" },
+  );
+
+export const uploadCaption = (uid: string, lang: string, file: File) => {
+  const fd = new FormData();
+  fd.append("file", file);
+  return fetchJson<{ ok: true }>(
+    `/api/stream/${encodeURIComponent(uid)}/captions/${encodeURIComponent(lang)}`,
+    { method: "PUT", body: fd },
+  );
+};
+
+export const deleteCaption = (uid: string, lang: string) =>
+  fetchJson<{ ok: true }>(
+    `/api/stream/${encodeURIComponent(uid)}/captions/${encodeURIComponent(lang)}`,
+    { method: "DELETE" },
+  );
