@@ -177,5 +177,48 @@ export function imagesRoute(makeService: MakeService) {
     return c.json({ uploadURL: result.uploadURL, id: result.id });
   });
 
+  app.get("/:id/transform-download", async (c) => {
+    const creds = await makeService(c.env).credentials();
+    if (!creds || !creds.accountHash) return c.json({ error: "Not connected" }, 409);
+    const id = c.req.param("id");
+    // Validate inputs before building the upstream URL: the host is fixed
+    // (imagedelivery.net/<accountHash>), but this blocks malformed ids/options
+    // and any path-traversal segments from reaching the fetch.
+    if (!/^[\w-]+$/.test(id)) return c.json({ error: "Invalid image id" }, 400);
+    const options = c.req.query("o") ?? "";
+    if (options && !/^[\w=,.%;#-]+$/.test(options)) {
+      return c.json({ error: "Invalid options" }, 400);
+    }
+    // Sanitize the attachment filename to prevent header injection (CRLF/quote).
+    const name = (c.req.query("name") || id).replace(/["\\\r\n]/g, "_");
+    const base = `https://imagedelivery.net/${creds.accountHash}/${id}`;
+    const url = options ? `${base}/${options}` : `${base}/public`;
+    const res = await fetch(url);
+    if (!res.ok || !res.body) return c.json({ error: "Failed to fetch image" }, 502);
+    return new Response(res.body, {
+      status: 200,
+      headers: {
+        "Content-Type": res.headers.get("Content-Type") ?? "application/octet-stream",
+        "Content-Disposition": `attachment; filename="${name}"`,
+      },
+    });
+  });
+
+  app.post("/flexible-variants", async (c) => {
+    const svc = makeService(c.env);
+    const creds = await svc.credentials();
+    if (!creds) return c.json({ error: "Not connected" }, 409);
+    try {
+      await cfJson(creds, "/images/v1/config", {
+        method: "PATCH",
+        body: JSON.stringify({ flexible_variants: true }),
+      });
+    } catch {
+      return c.json({ error: "Failed to enable flexible variants" }, 502);
+    }
+    await svc.setFlexibleVariants(true);
+    return c.json(await svc.getStatus());
+  });
+
   return app;
 }

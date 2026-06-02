@@ -132,3 +132,11 @@ export const updateAudio = (id: string, patch: { name?: string }) =>
 
 export const deleteAudio = (id: string) =>
   fetchJson<{ ok: true }>(`/api/audio/${encodeURIComponent(id)}`, { method: "DELETE" });
+
+export const transformDownloadUrl = (id: string, options: string, name: string): string => {
+  const q = new URLSearchParams({ o: options, name }).toString();
+  return `/api/images/${encodeURIComponent(id)}/transform-download?${q}`;
+};
+
+export const enableFlexibleVariants = () =>
+  fetchJson<ConnectionStatus>("/api/images/flexible-variants", { method: "POST" });

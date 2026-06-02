@@ -2,6 +2,12 @@
 import * as tus from "tus-js-client";
 import { getImageUploadUrl, getStreamUploadUrl } from "@/lib/cf-api";
 
+// Browsers often report an empty MIME type for HEIC/HEIF; match by extension.
+const HEIC_RE = /\.hei[cf]s?$/i;
+export function isHeic(file: File): boolean {
+  return file.type === "image/heic" || file.type === "image/heif" || HEIC_RE.test(file.name);
+}
+
 export type ProgressFn = (percent: number) => void;
 
 // Image: one-time direct-upload URL, then a multipart POST (XHR for progress).
@@ -68,7 +74,8 @@ export function isUploadable(file: File): boolean {
   return (
     file.type.startsWith("image/") ||
     file.type.startsWith("video/") ||
-    file.type.startsWith("audio/")
+    file.type.startsWith("audio/") ||
+    isHeic(file)
   );
 }
 
@@ -85,7 +92,9 @@ export async function uploadFile(
       "File is empty (0 bytes) — it may be an undownloaded cloud placeholder. Open or download it locally, then re-upload.",
     );
   }
-  if (file.type.startsWith("image/")) return uploadImage(file, requireSignedURLs, onProgress);
+  if (file.type.startsWith("image/") || isHeic(file)) {
+    return uploadImage(file, requireSignedURLs, onProgress);
+  }
   if (file.type.startsWith("video/")) return uploadVideo(file, requireSignedURLs, onProgress);
   if (file.type.startsWith("audio/")) return uploadAudio(file, onProgress);
   throw new Error(`Unsupported file type: ${file.type || "unknown"}`);

@@ -29,6 +29,16 @@ const AUDIO_MIME = [
   "audio/*",
 ];
 
+// react-dropzone Accept record. Extension entries (e.g. ".heic") let files
+// with an empty MIME type (common for HEIC) match by filename.
+const ACCEPT: Record<string, string[]> = {
+  ...Object.fromEntries(IMAGE_MIME_TYPE.map((m) => [m, [] as string[]])),
+  "image/heic": [".heic", ".heics"],
+  "image/heif": [".heif", ".heifs"],
+  ...Object.fromEntries(VIDEO_MIME.map((m) => [m, [] as string[]])),
+  ...Object.fromEntries(AUDIO_MIME.map((m) => [m, [] as string[]])),
+};
+
 export function UploadModal() {
   const opened = useUIStore((s) => s.uploadOpen);
   const setOpen = useUIStore((s) => s.setUploadOpen);
@@ -76,14 +86,10 @@ export function UploadModal() {
           checked={signed}
           onChange={(e) => setSigned(e.currentTarget.checked)}
         />
-        <Dropzone
-          onDrop={onDrop}
-          accept={[...IMAGE_MIME_TYPE, ...VIDEO_MIME, ...AUDIO_MIME]}
-          loading={busy}
-        >
+        <Dropzone onDrop={onDrop} accept={ACCEPT} loading={busy}>
           <Group justify="center" gap="sm" mih={120} style={{ pointerEvents: "none" }}>
             <IconUpload size={32} />
-            <Text>Drag images, videos, or audio here, or click to choose</Text>
+            <Text>Drag images (incl. HEIC), videos, or audio here, or click to choose</Text>
           </Group>
         </Dropzone>
         {items.length > 0 && (
