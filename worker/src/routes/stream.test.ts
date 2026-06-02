@@ -464,7 +464,8 @@ describe("streamRoute", () => {
 
   it("PATCH /:uid forwards thumbnailTimestampPct", async () => {
     const fetchMock = vi.fn(
-      async () => new Response(JSON.stringify({ success: true, result: { uid: "vid1" } }), { status: 200 }),
+      async () =>
+        new Response(JSON.stringify({ success: true, result: { uid: "vid1" } }), { status: 200 }),
     );
     vi.stubGlobal("fetch", fetchMock);
     const res = await app(connected).request("/api/stream/vid1", {
@@ -483,7 +484,10 @@ describe("streamRoute", () => {
     const fetchMock = vi.fn(
       async () =>
         new Response(
-          JSON.stringify({ success: true, result: { uid: "vid1", allowedOrigins: ["example.com"] } }),
+          JSON.stringify({
+            success: true,
+            result: { uid: "vid1", allowedOrigins: ["example.com"] },
+          }),
           { status: 200 },
         ),
     );
@@ -496,7 +500,9 @@ describe("streamRoute", () => {
     expect(res.status).toBe(200);
     const [, init] = fetchMock.mock.calls[0]! as unknown as [string, RequestInit];
     expect(JSON.parse(init.body as string)).toEqual({ allowedOrigins: ["example.com"] });
-    expect((await res.json() as { allowedOrigins: string[] }).allowedOrigins).toEqual(["example.com"]);
+    expect(((await res.json()) as { allowedOrigins: string[] }).allowedOrigins).toEqual([
+      "example.com",
+    ]);
   });
 
   it("PATCH /:uid rejects an out-of-range thumbnailTimestampPct", async () => {

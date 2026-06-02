@@ -36,7 +36,9 @@ export function VideoSettingsPanel({ item }: { item: MediaItem }) {
   const canPreview = !item.requireSignedURLs && !!item.thumbnailUrl && duration > 0;
   const sec = Math.round((debouncedPct / 100) * duration);
   const previewUrl =
-    canPreview && !previewFailed ? `${item.thumbnailUrl}?time=${sec}s&height=240` : item.thumbnailUrl;
+    canPreview && !previewFailed
+      ? `${item.thumbnailUrl}?time=${sec}s&height=240`
+      : item.thumbnailUrl;
 
   return (
     <Stack gap="xs">
@@ -54,8 +56,7 @@ export function VideoSettingsPanel({ item }: { item: MediaItem }) {
         />
       )}
       <Text size="xs" c="dimmed">
-        Thumbnail timestamp: {pct}%
-        {item.requireSignedURLs ? " (preview updates after saving)" : ""}
+        Thumbnail timestamp: {pct}%{item.requireSignedURLs ? " (preview updates after saving)" : ""}
       </Text>
       <Slider
         min={0}
