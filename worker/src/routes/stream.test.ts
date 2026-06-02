@@ -461,4 +461,56 @@ describe("streamRoute", () => {
     const res = await app(disconnected).request(`/api/stream/${UID}/captions`);
     expect(res.status).toBe(409);
   });
+
+  it("PATCH /:uid forwards thumbnailTimestampPct", async () => {
+    const fetchMock = vi.fn(
+      async () =>
+        new Response(JSON.stringify({ success: true, result: { uid: "vid1" } }), { status: 200 }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    const res = await app(connected).request("/api/stream/vid1", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ thumbnailTimestampPct: 0.25 }),
+    });
+    expect(res.status).toBe(200);
+    const [url, init] = fetchMock.mock.calls[0]! as unknown as [string, RequestInit];
+    expect(url).toBe("https://api.cloudflare.com/client/v4/accounts/acc1/stream/vid1");
+    expect(init.method).toBe("POST");
+    expect(JSON.parse(init.body as string)).toEqual({ thumbnailTimestampPct: 0.25 });
+  });
+
+  it("PATCH /:uid forwards trimmed allowedOrigins and surfaces them", async () => {
+    const fetchMock = vi.fn(
+      async () =>
+        new Response(
+          JSON.stringify({
+            success: true,
+            result: { uid: "vid1", allowedOrigins: ["example.com"] },
+          }),
+          { status: 200 },
+        ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    const res = await app(connected).request("/api/stream/vid1", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ allowedOrigins: ["example.com", "  "] }),
+    });
+    expect(res.status).toBe(200);
+    const [, init] = fetchMock.mock.calls[0]! as unknown as [string, RequestInit];
+    expect(JSON.parse(init.body as string)).toEqual({ allowedOrigins: ["example.com"] });
+    expect(((await res.json()) as { allowedOrigins: string[] }).allowedOrigins).toEqual([
+      "example.com",
+    ]);
+  });
+
+  it("PATCH /:uid rejects an out-of-range thumbnailTimestampPct", async () => {
+    const res = await app(connected).request("/api/stream/vid1", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ thumbnailTimestampPct: 1.5 }),
+    });
+    expect(res.status).toBe(400);
+  });
 });

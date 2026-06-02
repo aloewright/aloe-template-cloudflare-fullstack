@@ -32,6 +32,8 @@ export type MediaItem = {
   status: string | null;
   readyToStream: boolean | null;
   iframeUrl: string | null;
+  thumbnailTimestampPct: number | null;
+  allowedOrigins: string[];
   links: StreamLink[];
   // image-only
   variants: string[];
@@ -58,6 +60,8 @@ function imageToMedia(i: ImageItem): MediaItem {
     status: null,
     readyToStream: null,
     iframeUrl: null,
+    thumbnailTimestampPct: null,
+    allowedOrigins: [],
     links: [],
     variants: i.variants,
     meta: i.meta,
@@ -81,6 +85,8 @@ function streamToMedia(v: StreamItem): MediaItem {
     status: v.status,
     readyToStream: v.readyToStream,
     iframeUrl: v.iframeUrl,
+    thumbnailTimestampPct: v.thumbnailTimestampPct,
+    allowedOrigins: v.allowedOrigins,
     links: v.links,
     variants: [],
     meta: v.meta,
@@ -104,6 +110,8 @@ function audioToMedia(f: AudioFile): MediaItem {
     status: null,
     readyToStream: null,
     iframeUrl: null,
+    thumbnailTimestampPct: null,
+    allowedOrigins: [],
     links: [],
     variants: [],
     meta: {},
