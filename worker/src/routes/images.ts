@@ -181,8 +181,16 @@ export function imagesRoute(makeService: MakeService) {
     const creds = await makeService(c.env).credentials();
     if (!creds || !creds.accountHash) return c.json({ error: "Not connected" }, 409);
     const id = c.req.param("id");
+    // Validate inputs before building the upstream URL: the host is fixed
+    // (imagedelivery.net/<accountHash>), but this blocks malformed ids/options
+    // and any path-traversal segments from reaching the fetch.
+    if (!/^[\w-]+$/.test(id)) return c.json({ error: "Invalid image id" }, 400);
     const options = c.req.query("o") ?? "";
-    const name = c.req.query("name") || id;
+    if (options && !/^[\w=,.%;#-]+$/.test(options)) {
+      return c.json({ error: "Invalid options" }, 400);
+    }
+    // Sanitize the attachment filename to prevent header injection (CRLF/quote).
+    const name = (c.req.query("name") || id).replace(/["\\\r\n]/g, "_");
     const base = `https://imagedelivery.net/${creds.accountHash}/${id}`;
     const url = options ? `${base}/${options}` : `${base}/public`;
     const res = await fetch(url);
