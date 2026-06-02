@@ -23,6 +23,7 @@ import { ImageTransformPanel } from "@/components/ImageTransformPanel";
 import { VideoClipPanel } from "@/components/VideoClipPanel";
 import { VideoDownloadPanel } from "@/components/VideoDownloadPanel";
 import { VideoCaptionPanel } from "@/components/VideoCaptionPanel";
+import { VideoSettingsPanel } from "@/components/VideoSettingsPanel";
 
 function variantName(url: string): string {
   try {
@@ -180,6 +181,7 @@ function VideoDetail({ item }: { item: MediaItem }) {
       <VideoClipPanel item={item} />
       <VideoDownloadPanel item={item} />
       <VideoCaptionPanel item={item} />
+      <VideoSettingsPanel item={item} />
       <Text size="sm" c="dimmed">
         Created {item.createdAt || "—"}
       </Text>
