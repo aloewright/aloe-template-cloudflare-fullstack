@@ -309,7 +309,10 @@ export function streamRoute(makeService: MakeService) {
     if (!creds) return c.json({ error: "Not connected" }, 409);
     const uid = c.req.param("uid");
     if (!/^[0-9a-f]{32}$/i.test(uid)) return c.json({ error: "Invalid uid" }, 400);
-    const type = c.req.query("type") === "audio" ? "audio" : "default";
+    const type = c.req.query("type") ?? "default";
+    if (type !== "default" && type !== "audio") {
+      return c.json({ error: "Invalid type" }, 400);
+    }
     try {
       await cfJson(creds, `/stream/${uid}/downloads/${type}`, { method: "DELETE" });
     } catch {

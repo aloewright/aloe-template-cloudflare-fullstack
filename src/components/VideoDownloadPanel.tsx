@@ -56,6 +56,7 @@ function TypeRow({
           href={info.url}
           target="_blank"
           rel="noopener"
+          download
           leftSection={<IconDownload size={14} />}
         >
           Download {label}
@@ -90,7 +91,8 @@ export function VideoDownloadPanel({ item }: { item: MediaItem }) {
     queryKey: ["downloads", item.id],
     queryFn: () => getDownloads(item.id),
     enabled: ready,
-    refetchInterval: (query) => (hasInProgress(query.state.data) ? 4000 : false),
+    refetchInterval: (query) =>
+      query.state.status !== "error" && hasInProgress(query.state.data) ? 4000 : false,
   });
   if (!ready) return null;
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ["downloads", item.id] });
