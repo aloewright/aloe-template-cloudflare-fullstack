@@ -21,6 +21,7 @@ import { LoadingAnimation } from "@/components/LoadingAnimation";
 import { MediaEditPanel } from "@/components/MediaEditPanel";
 import { ImageTransformPanel } from "@/components/ImageTransformPanel";
 import { VideoClipPanel } from "@/components/VideoClipPanel";
+import { VideoDownloadPanel } from "@/components/VideoDownloadPanel";
 
 function variantName(url: string): string {
   try {
@@ -176,6 +177,7 @@ function VideoDetail({ item }: { item: MediaItem }) {
         </>
       )}
       <VideoClipPanel item={item} />
+      <VideoDownloadPanel item={item} />
       <Text size="sm" c="dimmed">
         Created {item.createdAt || "—"}
       </Text>
