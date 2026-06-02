@@ -150,3 +150,21 @@ export const transformDownloadUrl = (id: string, options: string, name: string):
 
 export const enableFlexibleVariants = () =>
   fetchJson<ConnectionStatus>("/api/images/flexible-variants", { method: "POST" });
+
+export type DownloadInfo = { status: string; percentComplete: number; url: string | null };
+export type DownloadsStatus = { default: DownloadInfo | null; audio: DownloadInfo | null };
+
+export const getDownloads = (uid: string) =>
+  fetchJson<DownloadsStatus>(`/api/stream/${encodeURIComponent(uid)}/downloads`);
+
+export const enableDownload = (uid: string, type: "default" | "audio") =>
+  fetchJson<{ ok: true }>(`/api/stream/${encodeURIComponent(uid)}/downloads`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ type }),
+  });
+
+export const deleteDownload = (uid: string, type: "default" | "audio") =>
+  fetchJson<{ ok: true }>(`/api/stream/${encodeURIComponent(uid)}/downloads?type=${type}`, {
+    method: "DELETE",
+  });
