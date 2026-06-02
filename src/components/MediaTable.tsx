@@ -1,6 +1,6 @@
 /* AGPL-3.0-or-later */
-import { Badge, Checkbox, Group, Image, Table, Text, UnstyledButton } from "@mantine/core";
-import { IconArrowDown, IconArrowsSort, IconArrowUp } from "@tabler/icons-react";
+import { Badge, Center, Checkbox, Group, Image, Table, Text, UnstyledButton } from "@mantine/core";
+import { IconArrowDown, IconArrowsSort, IconArrowUp, IconMusic } from "@tabler/icons-react";
 import {
   type ColumnDef,
   flexRender,
@@ -55,7 +55,11 @@ const columns: ColumnDef<MediaItem>[] = [
     enableSorting: false,
     header: () => null,
     cell: ({ row }) =>
-      row.original.thumbnailUrl ? (
+      row.original.kind === "audio" ? (
+        <Center w={40} h={40}>
+          <IconMusic size={20} opacity={0.6} />
+        </Center>
+      ) : row.original.thumbnailUrl ? (
         <Image
           src={row.original.thumbnailUrl}
           alt={row.original.name}
@@ -81,7 +85,12 @@ const columns: ColumnDef<MediaItem>[] = [
     header: "Type",
     size: 90,
     cell: ({ row }) => (
-      <Badge variant="light" color={row.original.kind === "video" ? "grape" : "blue"}>
+      <Badge
+        variant="light"
+        color={
+          row.original.kind === "video" ? "grape" : row.original.kind === "audio" ? "teal" : "blue"
+        }
+      >
         {row.original.kind}
       </Badge>
     ),

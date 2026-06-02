@@ -1,6 +1,8 @@
 /* AGPL-3.0-or-later */
 import { Badge, Card, Image, Text } from "@mantine/core";
 import { IconPlayerPlayFilled } from "@tabler/icons-react";
+import { AudioPlayer } from "@/components/AudioPlayer";
+import { AudioThumb } from "@/components/AudioThumb";
 import type { MediaItem } from "@/lib/media";
 
 function fmtDuration(seconds: number): string {
@@ -17,6 +19,7 @@ export function MediaCard({
   onOpen: (item: MediaItem) => void;
 }) {
   const isVideo = item.kind === "video";
+  const isAudio = item.kind === "audio";
   return (
     <Card
       withBorder
@@ -25,7 +28,17 @@ export function MediaCard({
       className="break-inside-avoid cursor-pointer overflow-hidden relative"
       onClick={() => onOpen(item)}
     >
-      {item.thumbnailUrl ? (
+      {isAudio ? (
+        <>
+          <AudioThumb />
+          {item.src && (
+            // biome-ignore lint/a11y/useKeyWithClickEvents: wrapper only stops propagation so the player's clicks don't open the drawer
+            <div onClick={(e) => e.stopPropagation()} style={{ padding: 8 }}>
+              <AudioPlayer src={item.src} variant="compact" />
+            </div>
+          )}
+        </>
+      ) : item.thumbnailUrl ? (
         <Image src={item.thumbnailUrl} alt={item.name} loading="lazy" />
       ) : (
         <Text p="sm" size="sm" c="dimmed">
