@@ -1,6 +1,6 @@
 /* AGPL-3.0-or-later */
 import { Hono } from "hono";
-import { type CfCreds, cfJson } from "../lib/cf";
+import { type CfCreds, cfFetch, cfJson } from "../lib/cf";
 import { parseStreamCode } from "../lib/urls";
 import type { ConnectionService } from "../services/connection";
 import type { AppEnv } from "../types";
@@ -112,6 +112,9 @@ function toStreamItem(v: CfVideo): StreamItem {
   };
 }
 
+// UTF-8-safe base64 for TUS Upload-Metadata values.
+const b64 = (s: string) => btoa(String.fromCharCode(...new TextEncoder().encode(s)));
+
 export function streamRoute(makeService: MakeService) {
   const app = new Hono<AppEnv>();
 
@@ -167,6 +170,32 @@ export function streamRoute(makeService: MakeService) {
     if (!creds) return c.json({ error: "Not connected" }, 409);
     await cfJson(creds, `/stream/${c.req.param("uid")}`, { method: "DELETE" });
     return c.json({ ok: true });
+  });
+
+  app.post("/upload-url", async (c) => {
+    const creds = await makeService(c.env).credentials();
+    if (!creds) return c.json({ error: "Not connected" }, 409);
+    const body = await c.req
+      .json<{ uploadLength?: number; name?: string; requireSignedURLs?: boolean }>()
+      .catch(() => ({}) as { uploadLength?: number; name?: string; requireSignedURLs?: boolean });
+    if (!body.uploadLength || body.uploadLength <= 0) {
+      return c.json({ error: "uploadLength is required" }, 400);
+    }
+    const meta = [`maxDurationSeconds ${b64("21600")}`];
+    if (body.name) meta.push(`name ${b64(body.name)}`);
+    if (body.requireSignedURLs) meta.push(`requiresignedurls ${b64("true")}`);
+    const res = await cfFetch(creds, "/stream?direct_user=true", {
+      method: "POST",
+      headers: {
+        "Tus-Resumable": "1.0.0",
+        "Upload-Length": String(body.uploadLength),
+        "Upload-Metadata": meta.join(","),
+      },
+    });
+    const uploadURL = res.headers.get("Location");
+    if (!res.ok || !uploadURL) return c.json({ error: "Failed to create upload" }, 502);
+    const uid = res.headers.get("stream-media-id") ?? uploadURL.split("/").pop() ?? "";
+    return c.json({ uploadURL, uid });
   });
 
   return app;

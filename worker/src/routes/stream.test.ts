@@ -128,4 +128,53 @@ describe("streamRoute", () => {
     });
     expect(res.status).toBe(409);
   });
+
+  it("POST /upload-url performs TUS creation and returns the Location + uid", async () => {
+    const fetchMock = vi.fn(
+      async () =>
+        new Response(null, {
+          status: 201,
+          headers: {
+            Location: "https://upload.videodelivery.net/tus-abc123",
+            "stream-media-id": "abc123",
+          },
+        }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const res = await app(connected).request("/api/stream/upload-url", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ uploadLength: 12345, name: "clip.mp4", requireSignedURLs: true }),
+    });
+    expect(res.status).toBe(200);
+    const [url, init] = fetchMock.mock.calls[0]! as unknown as [string, RequestInit];
+    expect(url).toBe("https://api.cloudflare.com/client/v4/accounts/acc1/stream?direct_user=true");
+    expect(init.method).toBe("POST");
+    const headers = new Headers(init.headers);
+    expect(headers.get("Tus-Resumable")).toBe("1.0.0");
+    expect(headers.get("Upload-Length")).toBe("12345");
+    const meta = headers.get("Upload-Metadata") ?? "";
+    expect(meta).toContain("requiresignedurls");
+    expect(meta).toContain("name ");
+    expect(await res.json()).toEqual({
+      uploadURL: "https://upload.videodelivery.net/tus-abc123",
+      uid: "abc123",
+    });
+  });
+
+  it("POST /upload-url returns 400 without uploadLength, 409 when not connected", async () => {
+    const r400 = await app(connected).request("/api/stream/upload-url", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: "{}",
+    });
+    expect(r400.status).toBe(400);
+    const r409 = await app(disconnected).request("/api/stream/upload-url", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ uploadLength: 1 }),
+    });
+    expect(r409.status).toBe(409);
+  });
 });
