@@ -105,7 +105,9 @@ export function VariantManager() {
       modals.openConfirmModal({
         title: `Update variant "${name}"?`,
         children: (
-          <Text size="sm">This is a global change affecting every image that uses this variant.</Text>
+          <Text size="sm">
+            This is a global change affecting every image that uses this variant.
+          </Text>
         ),
         labels: { confirm: "Update", cancel: "Cancel" },
         onConfirm: () => update.mutate({ name, input: inputFromForm() }),
@@ -131,7 +133,9 @@ export function VariantManager() {
     modals.openConfirmModal({
       title: `Delete variant "${name}"?`,
       children: (
-        <Text size="sm">Deleting a variant is global and affects every image. This cannot be undone.</Text>
+        <Text size="sm">
+          Deleting a variant is global and affects every image. This cannot be undone.
+        </Text>
       ),
       labels: { confirm: "Delete", cancel: "Cancel" },
       confirmProps: { color: "red" },
@@ -167,12 +171,18 @@ export function VariantManager() {
                 </Table.Td>
                 <Table.Td>{def.fit ?? "—"}</Table.Td>
                 <Table.Td>
-                  {def.width || def.height ? `${def.width ?? "auto"}×${def.height ?? "auto"}` : "auto"}
+                  {def.width || def.height
+                    ? `${def.width ?? "auto"}×${def.height ?? "auto"}`
+                    : "auto"}
                 </Table.Td>
                 <Table.Td>{def.metadata ?? "—"}</Table.Td>
                 <Table.Td>
                   <Group gap="xs" justify="flex-end" wrap="nowrap">
-                    <ActionIcon variant="subtle" aria-label={`Edit ${name}`} onClick={() => startEdit(name, def)}>
+                    <ActionIcon
+                      variant="subtle"
+                      aria-label={`Edit ${name}`}
+                      onClick={() => startEdit(name, def)}
+                    >
                       <IconPencil size={16} />
                     </ActionIcon>
                     {name !== "public" && (

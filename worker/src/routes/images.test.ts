@@ -71,28 +71,35 @@ describe("imagesRoute", () => {
   it("GET /variants returns full variant defs", async () => {
     vi.stubGlobal(
       "fetch",
-      vi.fn(async () =>
-        new Response(
-          JSON.stringify({
-            success: true,
-            result: {
-              variants: {
-                thumbnail: {
-                  options: { fit: "cover", metadata: "none", width: 100, height: 100 },
-                  neverRequireSignedURLs: true,
+      vi.fn(
+        async () =>
+          new Response(
+            JSON.stringify({
+              success: true,
+              result: {
+                variants: {
+                  thumbnail: {
+                    options: { fit: "cover", metadata: "none", width: 100, height: 100 },
+                    neverRequireSignedURLs: true,
+                  },
                 },
               },
-            },
-          }),
-          { status: 200 },
-        ),
+            }),
+            { status: 200 },
+          ),
       ),
     );
     const res = await app(connectedService).request("/api/images/variants");
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({
       variants: {
-        thumbnail: { fit: "cover", metadata: "none", width: 100, height: 100, neverRequireSignedURLs: true },
+        thumbnail: {
+          fit: "cover",
+          metadata: "none",
+          width: 100,
+          height: 100,
+          neverRequireSignedURLs: true,
+        },
       },
     });
   });
@@ -269,12 +276,21 @@ describe("imagesRoute", () => {
   });
 
   it("POST /variants creates a variant", async () => {
-    const fetchMock = vi.fn(async () => new Response(JSON.stringify({ success: true, result: {} }), { status: 200 }));
+    const fetchMock = vi.fn(
+      async () => new Response(JSON.stringify({ success: true, result: {} }), { status: 200 }),
+    );
     vi.stubGlobal("fetch", fetchMock);
     const res = await app(connectedService).request("/api/images/variants", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: "square", fit: "cover", width: 512, height: 512, metadata: "none", neverRequireSignedURLs: true }),
+      body: JSON.stringify({
+        name: "square",
+        fit: "cover",
+        width: 512,
+        height: 512,
+        metadata: "none",
+        neverRequireSignedURLs: true,
+      }),
     });
     expect(res.status).toBe(200);
     const [url, init] = fetchMock.mock.calls[0]! as unknown as [string, RequestInit];
@@ -297,7 +313,9 @@ describe("imagesRoute", () => {
   });
 
   it("PATCH /variants/:name edits a variant", async () => {
-    const fetchMock = vi.fn(async () => new Response(JSON.stringify({ success: true, result: {} }), { status: 200 }));
+    const fetchMock = vi.fn(
+      async () => new Response(JSON.stringify({ success: true, result: {} }), { status: 200 }),
+    );
     vi.stubGlobal("fetch", fetchMock);
     const res = await app(connectedService).request("/api/images/variants/thumbnail", {
       method: "PATCH",
@@ -306,7 +324,9 @@ describe("imagesRoute", () => {
     });
     expect(res.status).toBe(200);
     const [url, init] = fetchMock.mock.calls[0]! as unknown as [string, RequestInit];
-    expect(url).toBe("https://api.cloudflare.com/client/v4/accounts/acc1/images/v1/variants/thumbnail");
+    expect(url).toBe(
+      "https://api.cloudflare.com/client/v4/accounts/acc1/images/v1/variants/thumbnail",
+    );
     expect(init.method).toBe("PATCH");
     expect(JSON.parse(init.body as string)).toEqual({
       options: { fit: "contain", metadata: "keep" },
@@ -315,17 +335,25 @@ describe("imagesRoute", () => {
   });
 
   it("DELETE /variants/public is rejected with 400", async () => {
-    const res = await app(connectedService).request("/api/images/variants/public", { method: "DELETE" });
+    const res = await app(connectedService).request("/api/images/variants/public", {
+      method: "DELETE",
+    });
     expect(res.status).toBe(400);
   });
 
   it("DELETE /variants/:name deletes a variant", async () => {
-    const fetchMock = vi.fn(async () => new Response(JSON.stringify({ success: true, result: {} }), { status: 200 }));
+    const fetchMock = vi.fn(
+      async () => new Response(JSON.stringify({ success: true, result: {} }), { status: 200 }),
+    );
     vi.stubGlobal("fetch", fetchMock);
-    const res = await app(connectedService).request("/api/images/variants/thumbnail", { method: "DELETE" });
+    const res = await app(connectedService).request("/api/images/variants/thumbnail", {
+      method: "DELETE",
+    });
     expect(res.status).toBe(200);
     const [url, init] = fetchMock.mock.calls[0]! as unknown as [string, RequestInit];
-    expect(url).toBe("https://api.cloudflare.com/client/v4/accounts/acc1/images/v1/variants/thumbnail");
+    expect(url).toBe(
+      "https://api.cloudflare.com/client/v4/accounts/acc1/images/v1/variants/thumbnail",
+    );
     expect(init.method).toBe("DELETE");
   });
 

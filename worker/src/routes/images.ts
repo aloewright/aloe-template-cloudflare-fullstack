@@ -118,7 +118,13 @@ export function imagesRoute(makeService: MakeService) {
     const res = await cfJson<CfVariants>(creds, "/images/v1/variants");
     const variants: Record<
       string,
-      { fit: string | null; metadata: string | null; width: number | null; height: number | null; neverRequireSignedURLs: boolean }
+      {
+        fit: string | null;
+        metadata: string | null;
+        width: number | null;
+        height: number | null;
+        neverRequireSignedURLs: boolean;
+      }
     > = {};
     for (const [name, def] of Object.entries(res.variants ?? {})) {
       variants[name] = {
@@ -242,10 +248,24 @@ export function imagesRoute(makeService: MakeService) {
     const creds = await makeService(c.env).credentials();
     if (!creds) return c.json({ error: "Not connected" }, 409);
     const body = await c.req
-      .json<{ name?: string; fit?: string; width?: number; height?: number; metadata?: string; neverRequireSignedURLs?: boolean }>()
+      .json<{
+        name?: string;
+        fit?: string;
+        width?: number;
+        height?: number;
+        metadata?: string;
+        neverRequireSignedURLs?: boolean;
+      }>()
       .catch(() => ({}) as Record<string, never>);
     const { name, fit, metadata } = body;
-    if (!name || !VARIANT_NAME_RE.test(name) || !fit || !VARIANT_FIT.has(fit) || !metadata || !VARIANT_META.has(metadata)) {
+    if (
+      !name ||
+      !VARIANT_NAME_RE.test(name) ||
+      !fit ||
+      !VARIANT_FIT.has(fit) ||
+      !metadata ||
+      !VARIANT_META.has(metadata)
+    ) {
       return c.json({ error: "Invalid variant" }, 400);
     }
     const options: Record<string, unknown> = { fit, metadata };
@@ -254,7 +274,11 @@ export function imagesRoute(makeService: MakeService) {
     try {
       await cfJson(creds, "/images/v1/variants", {
         method: "POST",
-        body: JSON.stringify({ id: name, options, neverRequireSignedURLs: !!body.neverRequireSignedURLs }),
+        body: JSON.stringify({
+          id: name,
+          options,
+          neverRequireSignedURLs: !!body.neverRequireSignedURLs,
+        }),
       });
     } catch {
       return c.json({ error: "Failed to create variant" }, 502);
@@ -268,7 +292,13 @@ export function imagesRoute(makeService: MakeService) {
     const name = c.req.param("name");
     if (!VARIANT_NAME_RE.test(name)) return c.json({ error: "Invalid variant name" }, 400);
     const body = await c.req
-      .json<{ fit?: string; width?: number; height?: number; metadata?: string; neverRequireSignedURLs?: boolean }>()
+      .json<{
+        fit?: string;
+        width?: number;
+        height?: number;
+        metadata?: string;
+        neverRequireSignedURLs?: boolean;
+      }>()
       .catch(() => ({}) as Record<string, never>);
     const { fit, metadata } = body;
     if (!fit || !VARIANT_FIT.has(fit) || !metadata || !VARIANT_META.has(metadata)) {
