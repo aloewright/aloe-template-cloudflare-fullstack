@@ -157,5 +157,25 @@ export function imagesRoute(makeService: MakeService) {
     return c.json({ ok: true });
   });
 
+  app.post("/upload-url", async (c) => {
+    const creds = await makeService(c.env).credentials();
+    if (!creds) return c.json({ error: "Not connected" }, 409);
+    const body = await c.req
+      .json<{ requireSignedURLs?: boolean }>()
+      .catch(() => ({}) as { requireSignedURLs?: boolean });
+    // CF Images direct_upload expects multipart/form-data, not JSON.
+    const form = new FormData();
+    form.append("requireSignedURLs", String(body.requireSignedURLs ?? false));
+    const result = await cfJson<{ uploadURL: string; id: string }>(
+      creds,
+      "/images/v2/direct_upload",
+      {
+        method: "POST",
+        body: form,
+      },
+    );
+    return c.json({ uploadURL: result.uploadURL, id: result.id });
+  });
+
   return app;
 }

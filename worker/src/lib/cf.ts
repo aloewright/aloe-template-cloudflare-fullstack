@@ -17,7 +17,10 @@ export class CfApiError extends Error {
 export function cfFetch(creds: CfCreds, path: string, init: RequestInit = {}): Promise<Response> {
   const headers = new Headers(init.headers);
   headers.set("Authorization", `Bearer ${creds.token}`);
-  if (init.body && !headers.has("Content-Type")) headers.set("Content-Type", "application/json");
+  // Default JSON, but never override the multipart boundary the runtime sets for FormData.
+  if (init.body && !headers.has("Content-Type") && !(init.body instanceof FormData)) {
+    headers.set("Content-Type", "application/json");
+  }
   return fetch(`${CF_API_BASE}/accounts/${creds.accountId}${path}`, { ...init, headers });
 }
 

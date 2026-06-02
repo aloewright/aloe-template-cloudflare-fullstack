@@ -40,7 +40,6 @@ function dimsLabel(d: VariantDims | undefined): string {
   return "auto";
 }
 
-
 function CopyBox({ title, subtitle, url }: { title: string; subtitle: string; url: string }) {
   return (
     <CopyButton value={url} timeout={1500}>

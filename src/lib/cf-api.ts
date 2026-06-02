@@ -93,3 +93,21 @@ export const updateStream = (uid: string, patch: MediaPatch) =>
 
 export const deleteStream = (uid: string) =>
   fetchJson<{ ok: true }>(`/api/stream/${encodeURIComponent(uid)}`, { method: "DELETE" });
+
+export const getImageUploadUrl = (requireSignedURLs: boolean) =>
+  fetchJson<{ uploadURL: string; id: string }>("/api/images/upload-url", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ requireSignedURLs }),
+  });
+
+export const getStreamUploadUrl = (input: {
+  uploadLength: number;
+  name?: string;
+  requireSignedURLs?: boolean;
+}) =>
+  fetchJson<{ uploadURL: string; uid: string }>("/api/stream/upload-url", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });

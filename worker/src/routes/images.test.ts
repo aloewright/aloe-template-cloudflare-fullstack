@@ -156,4 +156,44 @@ describe("imagesRoute", () => {
     });
     expect(res.status).toBe(409);
   });
+
+  it("POST /upload-url mints a direct-upload URL", async () => {
+    const fetchMock = vi.fn(
+      async () =>
+        new Response(
+          JSON.stringify({
+            success: true,
+            result: { uploadURL: "https://upload.imagedelivery.net/one-time", id: "newimg" },
+          }),
+          { status: 200 },
+        ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const res = await app(connectedService).request("/api/images/upload-url", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ requireSignedURLs: true }),
+    });
+    expect(res.status).toBe(200);
+    const [url, init] = fetchMock.mock.calls[0]! as unknown as [string, RequestInit];
+    expect(url).toBe("https://api.cloudflare.com/client/v4/accounts/acc1/images/v2/direct_upload");
+    expect(init.method).toBe("POST");
+    expect(init.body).toBeInstanceOf(FormData);
+    expect((init.body as FormData).get("requireSignedURLs")).toBe("true");
+    expect(new Headers(init.headers).get("Content-Type")).toBeNull();
+    expect(await res.json()).toEqual({
+      uploadURL: "https://upload.imagedelivery.net/one-time",
+      id: "newimg",
+    });
+  });
+
+  it("POST /upload-url returns 409 when not connected", async () => {
+    const res = await app(disconnectedService).request("/api/images/upload-url", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: "{}",
+    });
+    expect(res.status).toBe(409);
+  });
 });

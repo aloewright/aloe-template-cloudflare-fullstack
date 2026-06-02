@@ -12,11 +12,12 @@ import {
 } from "@mantine/core";
 import { modals } from "@mantine/modals";
 import { notifications } from "@mantine/notifications";
-import { IconSettings } from "@tabler/icons-react";
+import { IconSettings, IconUpload } from "@tabler/icons-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { useMemo } from "react";
 import { ColorSchemeToggle } from "@/components/ColorSchemeToggle";
+import { UploadModal } from "@/components/UploadModal";
 import { LoadingAnimation } from "@/components/LoadingAnimation";
 import { MediaCard } from "@/components/MediaCard";
 import { MediaDetailDrawer } from "@/components/MediaDetailDrawer";
@@ -103,6 +104,14 @@ export function Gallery() {
             </Text>
           )}
           <ColorSchemeToggle />
+          <Button
+            leftSection={<IconUpload size={16} />}
+            variant="light"
+            size="xs"
+            onClick={() => useUIStore.getState().setUploadOpen(true)}
+          >
+            Upload
+          </Button>
           <ActionIcon
             component={Link}
             to="/settings"
@@ -172,6 +181,7 @@ export function Gallery() {
       )}
 
       <MediaDetailDrawer item={selected} onClose={() => setSelected(null)} />
+      <UploadModal />
     </Container>
   );
 }
