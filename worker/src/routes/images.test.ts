@@ -179,7 +179,9 @@ describe("imagesRoute", () => {
     const [url, init] = fetchMock.mock.calls[0]! as unknown as [string, RequestInit];
     expect(url).toBe("https://api.cloudflare.com/client/v4/accounts/acc1/images/v2/direct_upload");
     expect(init.method).toBe("POST");
-    expect(JSON.parse(init.body as string)).toEqual({ requireSignedURLs: true });
+    expect(init.body).toBeInstanceOf(FormData);
+    expect((init.body as FormData).get("requireSignedURLs")).toBe("true");
+    expect(new Headers(init.headers).get("Content-Type")).toBeNull();
     expect(await res.json()).toEqual({
       uploadURL: "https://upload.imagedelivery.net/one-time",
       id: "newimg",

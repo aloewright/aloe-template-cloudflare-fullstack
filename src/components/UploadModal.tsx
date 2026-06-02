@@ -67,8 +67,8 @@ export function UploadModal() {
         </Dropzone>
         {items.length > 0 && (
           <Stack gap="xs">
-            {items.map((it) => (
-              <div key={it.name}>
+            {items.map((it, i) => (
+              <div key={i}>
                 <Group justify="space-between" gap="xs">
                   <Text size="sm" lineClamp={1}>
                     {it.name}

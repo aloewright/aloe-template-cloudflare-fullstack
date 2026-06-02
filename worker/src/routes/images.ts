@@ -163,12 +163,15 @@ export function imagesRoute(makeService: MakeService) {
     const body = await c.req
       .json<{ requireSignedURLs?: boolean }>()
       .catch(() => ({}) as { requireSignedURLs?: boolean });
+    // CF Images direct_upload expects multipart/form-data, not JSON.
+    const form = new FormData();
+    form.append("requireSignedURLs", String(body.requireSignedURLs ?? false));
     const result = await cfJson<{ uploadURL: string; id: string }>(
       creds,
       "/images/v2/direct_upload",
       {
         method: "POST",
-        body: JSON.stringify({ requireSignedURLs: body.requireSignedURLs ?? false }),
+        body: form,
       },
     );
     return c.json({ uploadURL: result.uploadURL, id: result.id });
