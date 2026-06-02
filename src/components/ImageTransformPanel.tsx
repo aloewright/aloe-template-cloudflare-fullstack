@@ -104,13 +104,46 @@ export function ImageTransformPanel({ item }: { item: MediaItem }) {
           <Accordion.Panel>
             <Stack gap="xs">
               <Group grow>
-                <NumberInput label="Width" min={1} value={opts.width} onChange={(v) => set({ width: typeof v === "number" ? v : undefined })} />
-                <NumberInput label="Height" min={1} value={opts.height} onChange={(v) => set({ height: typeof v === "number" ? v : undefined })} />
+                <NumberInput
+                  label="Width"
+                  min={1}
+                  value={opts.width}
+                  onChange={(v) => set({ width: typeof v === "number" ? v : undefined })}
+                />
+                <NumberInput
+                  label="Height"
+                  min={1}
+                  value={opts.height}
+                  onChange={(v) => set({ height: typeof v === "number" ? v : undefined })}
+                />
               </Group>
-              <Select label="Fit" data={FIT} clearable value={opts.fit ?? null} onChange={(v) => set({ fit: (v as TransformOptions["fit"]) ?? undefined })} />
-              <Select label="Gravity" data={GRAVITY} clearable value={opts.gravity ?? null} onChange={(v) => set({ gravity: v ?? undefined })} />
-              <NumberInput label="DPR" min={1} max={3} value={opts.dpr} onChange={(v) => set({ dpr: typeof v === "number" ? v : undefined })} />
-              <ColorInput label="Background (for pad)" format="hex" value={opts.background ?? ""} onChange={(v) => set({ background: v || undefined })} />
+              <Select
+                label="Fit"
+                data={FIT}
+                clearable
+                value={opts.fit ?? null}
+                onChange={(v) => set({ fit: (v as TransformOptions["fit"]) ?? undefined })}
+              />
+              <Select
+                label="Gravity"
+                data={GRAVITY}
+                clearable
+                value={opts.gravity ?? null}
+                onChange={(v) => set({ gravity: v ?? undefined })}
+              />
+              <NumberInput
+                label="DPR"
+                min={1}
+                max={3}
+                value={opts.dpr}
+                onChange={(v) => set({ dpr: typeof v === "number" ? v : undefined })}
+              />
+              <ColorInput
+                label="Background (for pad)"
+                format="hex"
+                value={opts.background ?? ""}
+                onChange={(v) => set({ background: v || undefined })}
+              />
             </Stack>
           </Accordion.Panel>
         </Accordion.Item>
@@ -118,14 +151,46 @@ export function ImageTransformPanel({ item }: { item: MediaItem }) {
           <Accordion.Control>Adjust</Accordion.Control>
           <Accordion.Panel>
             <Stack gap="xs">
-              <Select label="Rotate" data={["90", "180", "270"]} clearable value={opts.rotate ? String(opts.rotate) : null} onChange={(v) => set({ rotate: v ? (Number(v) as 90 | 180 | 270) : undefined })} />
+              <Select
+                label="Rotate"
+                data={["90", "180", "270"]}
+                clearable
+                value={opts.rotate ? String(opts.rotate) : null}
+                onChange={(v) => set({ rotate: v ? (Number(v) as 90 | 180 | 270) : undefined })}
+              />
               <Text size="xs">Blur</Text>
-              <Slider min={0} max={250} value={opts.blur ?? 0} onChange={(v) => set({ blur: v || undefined })} />
+              <Slider
+                min={0}
+                max={250}
+                value={opts.blur ?? 0}
+                onChange={(v) => set({ blur: v || undefined })}
+              />
               <Text size="xs">Sharpen</Text>
-              <Slider min={0} max={10} step={0.5} value={opts.sharpen ?? 0} onChange={(v) => set({ sharpen: v || undefined })} />
-              <NumberInput label="Brightness" step={0.1} value={opts.brightness} onChange={(v) => set({ brightness: typeof v === "number" ? v : undefined })} />
-              <NumberInput label="Contrast" step={0.1} value={opts.contrast} onChange={(v) => set({ contrast: typeof v === "number" ? v : undefined })} />
-              <NumberInput label="Gamma" step={0.1} value={opts.gamma} onChange={(v) => set({ gamma: typeof v === "number" ? v : undefined })} />
+              <Slider
+                min={0}
+                max={10}
+                step={0.5}
+                value={opts.sharpen ?? 0}
+                onChange={(v) => set({ sharpen: v || undefined })}
+              />
+              <NumberInput
+                label="Brightness"
+                step={0.1}
+                value={opts.brightness}
+                onChange={(v) => set({ brightness: typeof v === "number" ? v : undefined })}
+              />
+              <NumberInput
+                label="Contrast"
+                step={0.1}
+                value={opts.contrast}
+                onChange={(v) => set({ contrast: typeof v === "number" ? v : undefined })}
+              />
+              <NumberInput
+                label="Gamma"
+                step={0.1}
+                value={opts.gamma}
+                onChange={(v) => set({ gamma: typeof v === "number" ? v : undefined })}
+              />
             </Stack>
           </Accordion.Panel>
         </Accordion.Item>
@@ -133,11 +198,39 @@ export function ImageTransformPanel({ item }: { item: MediaItem }) {
           <Accordion.Control>Output</Accordion.Control>
           <Accordion.Panel>
             <Stack gap="xs">
-              <Select label="Format" data={FORMAT} clearable value={opts.format ?? null} onChange={(v) => set({ format: (v as TransformOptions["format"]) ?? undefined })} />
-              <NumberInput label="Quality" min={1} max={100} value={opts.quality} onChange={(v) => set({ quality: typeof v === "number" ? v : undefined })} />
-              <Select label="Metadata" data={META} clearable value={opts.metadata ?? null} onChange={(v) => set({ metadata: (v as TransformOptions["metadata"]) ?? undefined })} />
-              <Switch label="Keep animation (anim)" checked={opts.anim ?? true} onChange={(e) => set({ anim: e.currentTarget.checked ? undefined : false })} />
-              <Switch label="Fast compression" checked={opts.compression === "fast"} onChange={(e) => set({ compression: e.currentTarget.checked ? "fast" : undefined })} />
+              <Select
+                label="Format"
+                data={FORMAT}
+                clearable
+                value={opts.format ?? null}
+                onChange={(v) => set({ format: (v as TransformOptions["format"]) ?? undefined })}
+              />
+              <NumberInput
+                label="Quality"
+                min={1}
+                max={100}
+                value={opts.quality}
+                onChange={(v) => set({ quality: typeof v === "number" ? v : undefined })}
+              />
+              <Select
+                label="Metadata"
+                data={META}
+                clearable
+                value={opts.metadata ?? null}
+                onChange={(v) =>
+                  set({ metadata: (v as TransformOptions["metadata"]) ?? undefined })
+                }
+              />
+              <Switch
+                label="Keep animation (anim)"
+                checked={opts.anim ?? true}
+                onChange={(e) => set({ anim: e.currentTarget.checked ? undefined : false })}
+              />
+              <Switch
+                label="Fast compression"
+                checked={opts.compression === "fast"}
+                onChange={(e) => set({ compression: e.currentTarget.checked ? "fast" : undefined })}
+              />
             </Stack>
           </Accordion.Panel>
         </Accordion.Item>

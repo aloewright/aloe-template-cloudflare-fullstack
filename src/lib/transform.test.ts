@@ -7,9 +7,9 @@ describe("buildOptionsString", () => {
     expect(buildOptionsString({})).toBe("");
   });
   it("emits set keys in a stable order", () => {
-    expect(buildOptionsString({ width: 800, height: 600, fit: "cover", quality: 80, format: "auto" })).toBe(
-      "width=800,height=600,fit=cover,format=auto,quality=80",
-    );
+    expect(
+      buildOptionsString({ width: 800, height: 600, fit: "cover", quality: 80, format: "auto" }),
+    ).toBe("width=800,height=600,fit=cover,format=auto,quality=80");
   });
   it("url-encodes background and formats booleans + decimals", () => {
     expect(buildOptionsString({ background: "#ffffff", anim: false, brightness: 1.2 })).toBe(

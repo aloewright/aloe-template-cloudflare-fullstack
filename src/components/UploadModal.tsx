@@ -86,11 +86,7 @@ export function UploadModal() {
           checked={signed}
           onChange={(e) => setSigned(e.currentTarget.checked)}
         />
-        <Dropzone
-          onDrop={onDrop}
-          accept={ACCEPT}
-          loading={busy}
-        >
+        <Dropzone onDrop={onDrop} accept={ACCEPT} loading={busy}>
           <Group justify="center" gap="sm" mih={120} style={{ pointerEvents: "none" }}>
             <IconUpload size={32} />
             <Text>Drag images (incl. HEIC), videos, or audio here, or click to choose</Text>

@@ -226,7 +226,9 @@ describe("imagesRoute", () => {
       "fetch",
       vi.fn(async () => new Response("nope", { status: 404 })),
     );
-    const res = await app(connectedService).request("/api/images/img1/transform-download?o=width%3D800");
+    const res = await app(connectedService).request(
+      "/api/images/img1/transform-download?o=width%3D800",
+    );
     expect(res.status).toBe(502);
   });
 
@@ -239,7 +241,11 @@ describe("imagesRoute", () => {
     const svc = {
       credentials: async () => creds,
       setFlexibleVariants: setFlex,
-      getStatus: async () => ({ connected: true, accountId: "acc1", flexibleVariantsEnabled: true }),
+      getStatus: async () => ({
+        connected: true,
+        accountId: "acc1",
+        flexibleVariantsEnabled: true,
+      }),
     } as unknown as ConnectionService;
     const res = await app(svc).request("/api/images/flexible-variants", { method: "POST" });
     expect(res.status).toBe(200);
@@ -248,7 +254,11 @@ describe("imagesRoute", () => {
     expect(init.method).toBe("PATCH");
     expect(JSON.parse(init.body as string)).toEqual({ flexible_variants: true });
     expect(setFlex).toHaveBeenCalledWith(true);
-    expect(await res.json()).toEqual({ connected: true, accountId: "acc1", flexibleVariantsEnabled: true });
+    expect(await res.json()).toEqual({
+      connected: true,
+      accountId: "acc1",
+      flexibleVariantsEnabled: true,
+    });
   });
 
   it("POST /flexible-variants returns 409 when not connected", async () => {
