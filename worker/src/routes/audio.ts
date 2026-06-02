@@ -52,5 +52,65 @@ export function audioRoute(makeStore: MakeStore) {
     return c.json(toAudioFile(row));
   });
 
+  app.get("/:id", async (c) => {
+    const row = await makeStore(c.env).get(c.req.param("id"));
+    if (!row) return c.json({ error: "Not found" }, 404);
+    const rangeHeader = c.req.header("Range");
+    if (rangeHeader) {
+      const m = /^bytes=(\d+)-(\d*)$/.exec(rangeHeader.trim());
+      if (!m) return c.json({ error: "Range not satisfiable" }, 416);
+      const start = Number(m[1]);
+      const end = m[2] ? Number(m[2]) : row.size - 1;
+      if (Number.isNaN(start) || start >= row.size || start > end) {
+        return c.json({ error: "Range not satisfiable" }, 416);
+      }
+      const length = Math.min(end, row.size - 1) - start + 1;
+      const obj = await c.env.AUDIO_BUCKET.get(row.r2_key, { range: { offset: start, length } });
+      if (!obj?.body) return c.json({ error: "Not found" }, 404);
+      return new Response(obj.body, {
+        status: 206,
+        headers: {
+          "Content-Type": row.content_type,
+          "Content-Length": String(length),
+          "Content-Range": `bytes ${start}-${start + length - 1}/${row.size}`,
+          "Accept-Ranges": "bytes",
+        },
+      });
+    }
+    const obj = await c.env.AUDIO_BUCKET.get(row.r2_key);
+    if (!obj?.body) return c.json({ error: "Not found" }, 404);
+    return new Response(obj.body, {
+      status: 200,
+      headers: {
+        "Content-Type": row.content_type,
+        "Content-Length": String(row.size),
+        "Accept-Ranges": "bytes",
+      },
+    });
+  });
+
+  app.patch("/:id", async (c) => {
+    const store = makeStore(c.env);
+    const id = c.req.param("id");
+    const body = await c.req.json<{ name?: string }>().catch(() => ({}) as { name?: string });
+    const name = (body.name ?? "").trim();
+    if (!name) return c.json({ error: "name is required" }, 400);
+    const row = await store.get(id);
+    if (!row) return c.json({ error: "Not found" }, 404);
+    await store.rename(id, name);
+    return c.json(toAudioFile({ ...row, name }));
+  });
+
+  app.delete("/:id", async (c) => {
+    const store = makeStore(c.env);
+    const id = c.req.param("id");
+    const row = await store.get(id);
+    if (row) {
+      await c.env.AUDIO_BUCKET.delete(row.r2_key);
+      await store.remove(id);
+    }
+    return c.json({ ok: true });
+  });
+
   return app;
 }

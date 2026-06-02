@@ -105,3 +105,81 @@ describe("audioRoute list + upload", () => {
     });
   });
 });
+
+describe("audioRoute stream + edit", () => {
+  const row: AudioRow = {
+    id: "a1",
+    r2_key: "a1.mp3",
+    name: "One",
+    content_type: "audio/mpeg",
+    size: 4,
+    created_at: "2026-01-01T00:00:00Z",
+  };
+
+  it("GET /:id streams the object with Accept-Ranges", async () => {
+    const { store } = fakeStore([row]);
+    const { bucket } = fakeBucket({ "a1.mp3": new Uint8Array([1, 2, 3, 4]) });
+    const res = await makeApp(store, bucket).request("/api/audio/a1");
+    expect(res.status).toBe(200);
+    expect(res.headers.get("Accept-Ranges")).toBe("bytes");
+    expect(res.headers.get("Content-Type")).toBe("audio/mpeg");
+    expect(res.headers.get("Content-Length")).toBe("4");
+    expect(new Uint8Array(await res.arrayBuffer())).toEqual(new Uint8Array([1, 2, 3, 4]));
+  });
+
+  it("GET /:id honors a Range header with 206", async () => {
+    const { store } = fakeStore([row]);
+    const { bucket } = fakeBucket({ "a1.mp3": new Uint8Array([1, 2, 3, 4]) });
+    const res = await makeApp(store, bucket).request("/api/audio/a1", {
+      headers: { Range: "bytes=1-2" },
+    });
+    expect(res.status).toBe(206);
+    expect(res.headers.get("Content-Range")).toBe("bytes 1-2/4");
+    expect(res.headers.get("Content-Length")).toBe("2");
+    expect(new Uint8Array(await res.arrayBuffer())).toEqual(new Uint8Array([2, 3]));
+  });
+
+  it("GET /:id returns 404 for an unknown id", async () => {
+    const { store } = fakeStore();
+    const { bucket } = fakeBucket();
+    const res = await makeApp(store, bucket).request("/api/audio/nope");
+    expect(res.status).toBe(404);
+  });
+
+  it("PATCH /:id renames; 400 on empty; 404 on unknown", async () => {
+    const { store, map } = fakeStore([{ ...row }]);
+    const { bucket } = fakeBucket();
+    const app = makeApp(store, bucket);
+    const ok = await app.request("/api/audio/a1", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: "Renamed" }),
+    });
+    expect(ok.status).toBe(200);
+    expect(map.get("a1")?.name).toBe("Renamed");
+
+    const empty = await app.request("/api/audio/a1", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: "  " }),
+    });
+    expect(empty.status).toBe(400);
+
+    const missing = await app.request("/api/audio/nope", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: "X" }),
+    });
+    expect(missing.status).toBe(404);
+  });
+
+  it("DELETE /:id removes the object + row", async () => {
+    const { store, map } = fakeStore([{ ...row }]);
+    const { bucket, map: blobs } = fakeBucket({ "a1.mp3": new Uint8Array([1]) });
+    const res = await makeApp(store, bucket).request("/api/audio/a1", { method: "DELETE" });
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ ok: true });
+    expect(map.size).toBe(0);
+    expect(blobs.size).toBe(0);
+  });
+});
