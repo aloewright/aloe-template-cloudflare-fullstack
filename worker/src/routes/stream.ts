@@ -182,7 +182,10 @@ export function streamRoute(makeService: MakeService) {
       updateBody.thumbnailTimestampPct = body.thumbnailTimestampPct;
     }
     if (Array.isArray(body.allowedOrigins)) {
-      updateBody.allowedOrigins = body.allowedOrigins.map((o) => String(o).trim()).filter(Boolean);
+      if (!body.allowedOrigins.every((o) => typeof o === "string")) {
+        return c.json({ error: "allowedOrigins must be an array of strings" }, 400);
+      }
+      updateBody.allowedOrigins = body.allowedOrigins.map((o) => o.trim()).filter(Boolean);
     }
     const video = await cfJson<CfVideo>(creds, `/stream/${c.req.param("uid")}`, {
       method: "POST",

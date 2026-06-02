@@ -3,7 +3,7 @@ import { Button, Image, Slider, Stack, Text, Textarea } from "@mantine/core";
 import { useDebouncedValue } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { updateStream } from "@/lib/cf-api";
 import type { MediaItem } from "@/lib/media";
 
@@ -13,6 +13,10 @@ export function VideoSettingsPanel({ item }: { item: MediaItem }) {
   const [origins, setOrigins] = useState(item.allowedOrigins.join("\n"));
   const [debouncedPct] = useDebouncedValue(pct, 300);
   const [previewFailed, setPreviewFailed] = useState(false);
+
+  // Re-attempt the preview whenever the target frame (or video) changes, so a
+  // single failed load doesn't latch the fallback for the rest of the session.
+  useEffect(() => setPreviewFailed(false), [debouncedPct, item.thumbnailUrl]);
 
   const save = useMutation({
     mutationFn: () =>
@@ -33,7 +37,8 @@ export function VideoSettingsPanel({ item }: { item: MediaItem }) {
   if (item.kind !== "video") return null;
 
   const duration = item.duration ?? 0;
-  const canPreview = !item.requireSignedURLs && !!item.thumbnailUrl && duration > 0;
+  const canPreview =
+    !item.requireSignedURLs && !!item.thumbnailUrl && duration > 0 && !!item.readyToStream;
   const sec = Math.round((debouncedPct / 100) * duration);
   const previewUrl =
     canPreview && !previewFailed
