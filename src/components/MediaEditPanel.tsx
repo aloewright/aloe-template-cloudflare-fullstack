@@ -14,11 +14,14 @@ export function MediaEditPanel({ item }: { item: MediaItem }) {
   const queryClient = useQueryClient();
   const setSelected = useUIStore((s) => s.setSelected);
 
-  const [name, setName] = useState(item.meta.name ?? item.name);
+  // Cloudflare metadata is arbitrary JSON: it may be absent and values may be
+  // non-strings, so normalize defensively before driving the controlled inputs.
+  const initialMeta = item.meta ?? {};
+  const [name, setName] = useState(initialMeta.name ?? item.name);
   const [rows, setRows] = useState<Row[]>(
-    Object.entries(item.meta)
+    Object.entries(initialMeta)
       .filter(([k]) => k !== "name")
-      .map(([key, value], i) => ({ id: `r${i}`, key, value })),
+      .map(([key, value], i) => ({ id: `r${i}`, key, value: value == null ? "" : String(value) })),
   );
   const [requireSignedURLs, setRequireSignedURLs] = useState(item.requireSignedURLs);
 
@@ -77,21 +80,21 @@ export function MediaEditPanel({ item }: { item: MediaItem }) {
               <TextInput
                 placeholder="key"
                 value={r.key}
-                onChange={(e) =>
-                  setRows((rs) =>
-                    rs.map((x, j) => (j === i ? { ...x, key: e.currentTarget.value } : x)),
-                  )
-                }
+                onChange={(e) => {
+                  // Capture before the updater: React nulls e.currentTarget once
+                  // the handler returns, and the functional updater runs later.
+                  const key = e.currentTarget.value;
+                  setRows((rs) => rs.map((x, j) => (j === i ? { ...x, key } : x)));
+                }}
                 w={140}
               />
               <TextInput
                 placeholder="value"
                 value={r.value}
-                onChange={(e) =>
-                  setRows((rs) =>
-                    rs.map((x, j) => (j === i ? { ...x, value: e.currentTarget.value } : x)),
-                  )
-                }
+                onChange={(e) => {
+                  const value = e.currentTarget.value;
+                  setRows((rs) => rs.map((x, j) => (j === i ? { ...x, value } : x)));
+                }}
                 style={{ flex: 1 }}
               />
               <ActionIcon
