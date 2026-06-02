@@ -1,7 +1,7 @@
 /* AGPL-3.0-or-later */
 import { Hono } from "hono";
-import { type CfCreds, cfFetch, cfJson } from "../lib/cf";
-import { parseStreamCode } from "../lib/urls";
+import { type CfCreds, CfApiError, cfFetch, cfJson } from "../lib/cf";
+import { parseStreamCode, sanitizeDownloadFilename } from "../lib/urls";
 import type { ConnectionService } from "../services/connection";
 import type { AppEnv } from "../types";
 
@@ -59,6 +59,10 @@ async function signStreamItems(
     }),
   );
 }
+
+type CfDownload = { status?: string; url?: string; percentComplete?: number };
+type CfDownloads = { default?: CfDownload; audio?: CfDownload };
+type DownloadInfo = { status: string; percentComplete: number; url: string | null };
 
 type CfVideo = {
   uid: string;
@@ -234,6 +238,85 @@ export function streamRoute(makeService: MakeService) {
     const item = toStreamItem(video);
     await signStreamItems([item], creds);
     return c.json(item);
+  });
+
+  app.get("/:uid/downloads", async (c) => {
+    const creds = await makeService(c.env).credentials();
+    if (!creds) return c.json({ error: "Not connected" }, 409);
+    const uid = c.req.param("uid");
+    if (!/^[0-9a-f]{32}$/i.test(uid)) return c.json({ error: "Invalid uid" }, 400);
+
+    let dl: CfDownloads;
+    try {
+      dl = await cfJson<CfDownloads>(creds, `/stream/${uid}/downloads`);
+    } catch (e) {
+      if (e instanceof CfApiError && e.status === 404) dl = {};
+      else return c.json({ error: "Failed to load downloads" }, 502);
+    }
+    let video: CfVideo;
+    try {
+      video = await cfJson<CfVideo>(creds, `/stream/${uid}`);
+    } catch {
+      return c.json({ error: "Failed to load video" }, 502);
+    }
+
+    const code =
+      creds.streamCode ?? parseStreamCode(video.thumbnail || video.playback?.hls || "");
+    const anyReady = dl.default?.status === "ready" || dl.audio?.status === "ready";
+    let ref = uid;
+    if (video.requireSignedURLs && anyReady) {
+      try {
+        const t = await cfJson<{ token?: string }>(creds, `/stream/${uid}/token`, {
+          method: "POST",
+          body: JSON.stringify({ downloadable: true }),
+        });
+        if (t.token) ref = t.token;
+      } catch {
+        // leave ref = uid; the URL may not authorize, surfaced client-side
+      }
+    }
+    const name = sanitizeDownloadFilename(video.meta?.name ?? uid);
+    const info = (d: CfDownload | undefined, file: string): DownloadInfo | null => {
+      if (!d) return null;
+      const url =
+        d.status === "ready" && code
+          ? `https://customer-${code}.cloudflarestream.com/${ref}/downloads/${file}?filename=${name}`
+          : null;
+      return { status: d.status ?? "unknown", percentComplete: d.percentComplete ?? 0, url };
+    };
+    return c.json({ default: info(dl.default, "default.mp4"), audio: info(dl.audio, "audio.m4a") });
+  });
+
+  app.post("/:uid/downloads", async (c) => {
+    const creds = await makeService(c.env).credentials();
+    if (!creds) return c.json({ error: "Not connected" }, 409);
+    const uid = c.req.param("uid");
+    if (!/^[0-9a-f]{32}$/i.test(uid)) return c.json({ error: "Invalid uid" }, 400);
+    const body = await c.req
+      .json<{ type?: "default" | "audio" }>()
+      .catch(() => ({}) as { type?: "default" | "audio" });
+    const path =
+      body.type === "audio" ? `/stream/${uid}/downloads/audio` : `/stream/${uid}/downloads`;
+    try {
+      await cfJson(creds, path, { method: "POST" });
+    } catch {
+      return c.json({ error: "Failed to enable download" }, 502);
+    }
+    return c.json({ ok: true });
+  });
+
+  app.delete("/:uid/downloads", async (c) => {
+    const creds = await makeService(c.env).credentials();
+    if (!creds) return c.json({ error: "Not connected" }, 409);
+    const uid = c.req.param("uid");
+    if (!/^[0-9a-f]{32}$/i.test(uid)) return c.json({ error: "Invalid uid" }, 400);
+    const type = c.req.query("type") === "audio" ? "audio" : "default";
+    try {
+      await cfJson(creds, `/stream/${uid}/downloads/${type}`, { method: "DELETE" });
+    } catch {
+      return c.json({ error: "Failed to remove download" }, 502);
+    }
+    return c.json({ ok: true });
   });
 
   return app;
