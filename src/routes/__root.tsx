@@ -16,6 +16,14 @@ import { useState } from "react";
 import { AppSpotlight, RouteProgress } from "@/components/AppChrome";
 import { AppHotkeys } from "@/lib/hotkeys";
 import { theme } from "@/theme";
+// Inline the brand/loader SVG as a data-URI favicon. A root public file like
+// /logo.svg is not served by the TanStack Start + CF worker, and a hashed
+// /assets URL isn't reliably emitted for head links, so embed it directly.
+import loaderSvg from "@/assets/loader.svg?raw";
+
+const faviconUrl = `data:image/svg+xml,${encodeURIComponent(
+  loaderSvg.replace(/<\?xml[^>]*\?>/, ""),
+)}`;
 
 export const Route = createRootRoute({
   head: () => ({
@@ -25,7 +33,7 @@ export const Route = createRootRoute({
       { title: "Media Gallery" },
     ],
     links: [
-      { rel: "icon", type: "image/svg+xml", href: "/logo.svg" },
+      { rel: "icon", type: "image/svg+xml", href: faviconUrl },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
