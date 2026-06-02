@@ -19,6 +19,7 @@ import { useMemo } from "react";
 import { ColorSchemeToggle } from "@/components/ColorSchemeToggle";
 import { UploadModal } from "@/components/UploadModal";
 import { LoadingAnimation } from "@/components/LoadingAnimation";
+import { CinemaView } from "@/components/CinemaView";
 import { MediaCard } from "@/components/MediaCard";
 import { MediaDetailDrawer } from "@/components/MediaDetailDrawer";
 import { MediaGrid } from "@/components/MediaGrid";
@@ -129,10 +130,11 @@ export function Gallery() {
         <Group gap="sm">
           <SegmentedControl
             value={view}
-            onChange={(v) => setView(v as "grid" | "table")}
+            onChange={(v) => setView(v as "grid" | "table" | "cinema")}
             data={[
               { value: "grid", label: "Grid" },
               { value: "table", label: "Table" },
+              { value: "cinema", label: "Cinema" },
             ]}
           />
           {selectedItems.length > 0 && (
@@ -170,6 +172,8 @@ export function Gallery() {
         <Center py="xl">
           <Text c="dimmed">No media found.</Text>
         </Center>
+      ) : view === "cinema" ? (
+        <CinemaView items={items} onOpen={setSelected} />
       ) : view === "grid" ? (
         <MediaGrid>
           {items.map((item) => (
