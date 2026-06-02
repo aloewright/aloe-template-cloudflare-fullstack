@@ -9,6 +9,10 @@ import type { AppEnv } from "../types";
 type MakeService = (env: AppEnv["Bindings"]) => ConnectionService;
 const DAY = 60 * 60 * 24;
 
+const VARIANT_FIT = new Set(["scale-down", "contain", "cover", "crop", "pad"]);
+const VARIANT_META = new Set(["keep", "copyright", "none"]);
+const VARIANT_NAME_RE = /^[A-Za-z0-9_-]{1,64}$/;
+
 // Cache the account's Images signing key for the isolate's lifetime so we
 // don't refetch it on every request when signing private-image URLs.
 let signingKeyCache: string | null = null;
@@ -80,7 +84,13 @@ function toImageItem(img: CfImage): ImageItem {
 }
 
 type CfVariants = {
-  variants?: Record<string, { options?: { width?: number; height?: number; fit?: string } }>;
+  variants?: Record<
+    string,
+    {
+      options?: { width?: number; height?: number; fit?: string; metadata?: string };
+      neverRequireSignedURLs?: boolean;
+    }
+  >;
 };
 
 export function imagesRoute(makeService: MakeService) {
@@ -101,15 +111,23 @@ export function imagesRoute(makeService: MakeService) {
     return c.json({ images, continuationToken: result.continuation_token ?? null });
   });
 
-  // Variant definitions → name -> { width, height } so the UI can label each
-  // variant by its configured resolution. Registered before "/:id".
+  // Variant definitions → full per-variant options. Registered before "/:id".
   app.get("/variants", async (c) => {
     const creds = await makeService(c.env).credentials();
     if (!creds) return c.json({ error: "Not connected" }, 409);
     const res = await cfJson<CfVariants>(creds, "/images/v1/variants");
-    const variants: Record<string, { width: number | null; height: number | null }> = {};
+    const variants: Record<
+      string,
+      { fit: string | null; metadata: string | null; width: number | null; height: number | null; neverRequireSignedURLs: boolean }
+    > = {};
     for (const [name, def] of Object.entries(res.variants ?? {})) {
-      variants[name] = { width: def.options?.width ?? null, height: def.options?.height ?? null };
+      variants[name] = {
+        fit: def.options?.fit ?? null,
+        metadata: def.options?.metadata ?? null,
+        width: def.options?.width ?? null,
+        height: def.options?.height ?? null,
+        neverRequireSignedURLs: def.neverRequireSignedURLs ?? false,
+      };
     }
     return c.json({ variants });
   });
@@ -218,6 +236,70 @@ export function imagesRoute(makeService: MakeService) {
     }
     await svc.setFlexibleVariants(true);
     return c.json(await svc.getStatus());
+  });
+
+  app.post("/variants", async (c) => {
+    const creds = await makeService(c.env).credentials();
+    if (!creds) return c.json({ error: "Not connected" }, 409);
+    const body = await c.req
+      .json<{ name?: string; fit?: string; width?: number; height?: number; metadata?: string; neverRequireSignedURLs?: boolean }>()
+      .catch(() => ({}) as Record<string, never>);
+    const { name, fit, metadata } = body;
+    if (!name || !VARIANT_NAME_RE.test(name) || !fit || !VARIANT_FIT.has(fit) || !metadata || !VARIANT_META.has(metadata)) {
+      return c.json({ error: "Invalid variant" }, 400);
+    }
+    const options: Record<string, unknown> = { fit, metadata };
+    if (typeof body.width === "number") options.width = body.width;
+    if (typeof body.height === "number") options.height = body.height;
+    try {
+      await cfJson(creds, "/images/v1/variants", {
+        method: "POST",
+        body: JSON.stringify({ id: name, options, neverRequireSignedURLs: !!body.neverRequireSignedURLs }),
+      });
+    } catch {
+      return c.json({ error: "Failed to create variant" }, 502);
+    }
+    return c.json({ ok: true });
+  });
+
+  app.patch("/variants/:name", async (c) => {
+    const creds = await makeService(c.env).credentials();
+    if (!creds) return c.json({ error: "Not connected" }, 409);
+    const name = c.req.param("name");
+    if (!VARIANT_NAME_RE.test(name)) return c.json({ error: "Invalid variant name" }, 400);
+    const body = await c.req
+      .json<{ fit?: string; width?: number; height?: number; metadata?: string; neverRequireSignedURLs?: boolean }>()
+      .catch(() => ({}) as Record<string, never>);
+    const { fit, metadata } = body;
+    if (!fit || !VARIANT_FIT.has(fit) || !metadata || !VARIANT_META.has(metadata)) {
+      return c.json({ error: "Invalid variant" }, 400);
+    }
+    const options: Record<string, unknown> = { fit, metadata };
+    if (typeof body.width === "number") options.width = body.width;
+    if (typeof body.height === "number") options.height = body.height;
+    try {
+      await cfJson(creds, `/images/v1/variants/${name}`, {
+        method: "PATCH",
+        body: JSON.stringify({ options, neverRequireSignedURLs: !!body.neverRequireSignedURLs }),
+      });
+    } catch {
+      return c.json({ error: "Failed to update variant" }, 502);
+    }
+    return c.json({ ok: true });
+  });
+
+  app.delete("/variants/:name", async (c) => {
+    const creds = await makeService(c.env).credentials();
+    if (!creds) return c.json({ error: "Not connected" }, 409);
+    const name = c.req.param("name");
+    if (name === "public") return c.json({ error: "Cannot delete the public variant" }, 400);
+    if (!VARIANT_NAME_RE.test(name)) return c.json({ error: "Invalid variant name" }, 400);
+    try {
+      await cfJson(creds, `/images/v1/variants/${name}`, { method: "DELETE" });
+    } catch {
+      return c.json({ error: "Failed to delete variant" }, 502);
+    }
+    return c.json({ ok: true });
   });
 
   return app;
