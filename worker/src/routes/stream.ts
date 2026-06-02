@@ -78,6 +78,7 @@ type CfVideo = {
   readyToStream?: boolean;
   requireSignedURLs?: boolean;
   thumbnailTimestampPct?: number;
+  allowedOrigins?: string[];
   created?: string;
 };
 
@@ -92,6 +93,7 @@ type StreamItem = {
   readyToStream: boolean;
   requireSignedURLs: boolean;
   thumbnailTimestampPct: number;
+  allowedOrigins: string[];
   iframeUrl: string;
   links: StreamLink[];
   meta: Record<string, string>;
@@ -112,6 +114,7 @@ function toStreamItem(v: CfVideo): StreamItem {
     readyToStream: v.readyToStream ?? false,
     requireSignedURLs: v.requireSignedURLs ?? false,
     thumbnailTimestampPct: v.thumbnailTimestampPct ?? 0,
+    allowedOrigins: v.allowedOrigins ?? [],
     iframeUrl: built?.iframeUrl ?? "",
     links: built?.links ?? [],
     meta: v.meta ?? {},
@@ -152,10 +155,22 @@ export function streamRoute(makeService: MakeService) {
     const creds = await makeService(c.env).credentials();
     if (!creds) return c.json({ error: "Not connected" }, 409);
     const body = await c.req
-      .json<{ name?: string; meta?: Record<string, string>; requireSignedURLs?: boolean }>()
-      .catch(
-        () => ({}) as { name?: string; meta?: Record<string, string>; requireSignedURLs?: boolean },
-      );
+      .json<{
+        name?: string;
+        meta?: Record<string, string>;
+        requireSignedURLs?: boolean;
+        thumbnailTimestampPct?: number;
+        allowedOrigins?: string[];
+      }>()
+      .catch(() => ({}) as Record<string, never>);
+    if (
+      body.thumbnailTimestampPct !== undefined &&
+      (typeof body.thumbnailTimestampPct !== "number" ||
+        body.thumbnailTimestampPct < 0 ||
+        body.thumbnailTimestampPct > 1)
+    ) {
+      return c.json({ error: "thumbnailTimestampPct must be between 0 and 1" }, 400);
+    }
     const updateBody: Record<string, unknown> = {};
     // Only send meta when the caller provided some, so a requireSignedURLs-only
     // update never wipes existing video metadata.
@@ -163,6 +178,12 @@ export function streamRoute(makeService: MakeService) {
       updateBody.meta = { ...body.meta, ...(body.name !== undefined ? { name: body.name } : {}) };
     }
     if (body.requireSignedURLs !== undefined) updateBody.requireSignedURLs = body.requireSignedURLs;
+    if (body.thumbnailTimestampPct !== undefined) {
+      updateBody.thumbnailTimestampPct = body.thumbnailTimestampPct;
+    }
+    if (Array.isArray(body.allowedOrigins)) {
+      updateBody.allowedOrigins = body.allowedOrigins.map((o) => String(o).trim()).filter(Boolean);
+    }
     const video = await cfJson<CfVideo>(creds, `/stream/${c.req.param("uid")}`, {
       method: "POST",
       body: JSON.stringify(updateBody),
