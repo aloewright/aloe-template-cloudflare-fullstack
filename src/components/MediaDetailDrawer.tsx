@@ -15,7 +15,7 @@ import {
 import { IconCheck, IconCopy } from "@tabler/icons-react";
 import { AudioPlayer } from "@/components/AudioPlayer";
 import { useQuery } from "@tanstack/react-query";
-import { getImage, getImageVariants, type VariantDims } from "@/lib/cf-api";
+import { getImage, getImageVariants, type VariantDef } from "@/lib/cf-api";
 import type { MediaItem } from "@/lib/media";
 import { LoadingAnimation } from "@/components/LoadingAnimation";
 import { MediaEditPanel } from "@/components/MediaEditPanel";
@@ -44,7 +44,7 @@ function fmtDuration(seconds: number): string {
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
-function dimsLabel(d: VariantDims | undefined): string {
+function dimsLabel(d: VariantDef | undefined): string {
   if (d?.width && d?.height) return `${d.width}×${d.height}`;
   if (d?.width) return `${d.width}px wide`;
   if (d?.height) return `${d.height}px tall`;

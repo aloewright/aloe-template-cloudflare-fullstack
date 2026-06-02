@@ -64,9 +64,38 @@ export const listStream = (cursor?: string) =>
 export const getImage = (id: string) =>
   fetchJson<ImageItem>(`/api/images/${encodeURIComponent(id)}`);
 
-export type VariantDims = { width: number | null; height: number | null };
+export type VariantDef = {
+  fit: string | null;
+  metadata: string | null;
+  width: number | null;
+  height: number | null;
+  neverRequireSignedURLs: boolean;
+};
 export const getImageVariants = () =>
-  fetchJson<{ variants: Record<string, VariantDims> }>("/api/images/variants");
+  fetchJson<{ variants: Record<string, VariantDef> }>("/api/images/variants");
+
+export type VariantInput = {
+  name: string;
+  fit: string;
+  width?: number;
+  height?: number;
+  metadata: string;
+  neverRequireSignedURLs?: boolean;
+};
+export const createVariant = (input: VariantInput) =>
+  fetchJson<{ ok: true }>("/api/images/variants", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+export const updateVariant = (name: string, input: Omit<VariantInput, "name">) =>
+  fetchJson<{ ok: true }>(`/api/images/variants/${encodeURIComponent(name)}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+export const deleteVariant = (name: string) =>
+  fetchJson<{ ok: true }>(`/api/images/variants/${encodeURIComponent(name)}`, { method: "DELETE" });
 
 export type MediaPatch = {
   name?: string;
