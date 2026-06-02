@@ -163,10 +163,14 @@ export function imagesRoute(makeService: MakeService) {
     const body = await c.req
       .json<{ requireSignedURLs?: boolean }>()
       .catch(() => ({}) as { requireSignedURLs?: boolean });
-    const result = await cfJson<{ uploadURL: string; id: string }>(creds, "/images/v2/direct_upload", {
-      method: "POST",
-      body: JSON.stringify({ requireSignedURLs: body.requireSignedURLs ?? false }),
-    });
+    const result = await cfJson<{ uploadURL: string; id: string }>(
+      creds,
+      "/images/v2/direct_upload",
+      {
+        method: "POST",
+        body: JSON.stringify({ requireSignedURLs: body.requireSignedURLs ?? false }),
+      },
+    );
     return c.json({ uploadURL: result.uploadURL, id: result.id });
   });
 

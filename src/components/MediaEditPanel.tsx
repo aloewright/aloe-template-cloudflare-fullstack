@@ -108,7 +108,9 @@ export function MediaEditPanel({ item }: { item: MediaItem }) {
             variant="subtle"
             size="xs"
             leftSection={<IconPlus size={14} />}
-            onClick={() => setRows((rs) => [...rs, { id: crypto.randomUUID(), key: "", value: "" }])}
+            onClick={() =>
+              setRows((rs) => [...rs, { id: crypto.randomUUID(), key: "", value: "" }])
+            }
             style={{ alignSelf: "flex-start" }}
           >
             Add field

@@ -74,7 +74,11 @@ export function UploadModal() {
                     {it.name}
                   </Text>
                   <Text size="xs" c={it.state === "error" ? "red" : "dimmed"}>
-                    {it.state === "error" ? "failed" : it.state === "done" ? "done" : `${it.percent}%`}
+                    {it.state === "error"
+                      ? "failed"
+                      : it.state === "done"
+                        ? "done"
+                        : `${it.percent}%`}
                   </Text>
                 </Group>
                 <Progress
