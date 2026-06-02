@@ -1,6 +1,7 @@
 /* AGPL-3.0-or-later */
 import { Hono } from "hono";
 import { createDatabase } from "./db";
+import { makeAudioStore } from "./lib/audio-store";
 import { d1ConnectionStore } from "./lib/connection-store";
 import { accessGuard } from "./middleware/access";
 import { checkout } from "./routes/checkout";
@@ -10,6 +11,7 @@ import { imagesRoute } from "./routes/images";
 import { me } from "./routes/me";
 import { session } from "./routes/session";
 import { settingsRoute } from "./routes/settings";
+import { audioRoute } from "./routes/audio";
 import { streamRoute } from "./routes/stream";
 import { success } from "./routes/success";
 import { webhook } from "./routes/webhook";
@@ -32,6 +34,10 @@ app.route("/api/me", me);
 app.route("/api/settings", settingsRoute(makeService));
 app.route("/api/images", imagesRoute(makeService));
 app.route("/api/stream", streamRoute(makeService));
+app.route(
+  "/api/audio",
+  audioRoute((env) => makeAudioStore(env.DB)),
+);
 
 // Template leftovers — now Access-gated and unused by the gallery app.
 app.route("/api/session", session);

@@ -70,62 +70,66 @@ export function MediaEditPanel({ item }: { item: MediaItem }) {
     <Stack gap="sm">
       <TextInput label="Name" value={name} onChange={(e) => setName(e.currentTarget.value)} />
 
-      <div>
-        <Text size="sm" fw={600} mb={4}>
-          Metadata
-        </Text>
-        <Stack gap="xs">
-          {rows.map((r, i) => (
-            <Group key={r.id} gap="xs" wrap="nowrap">
-              <TextInput
-                placeholder="key"
-                value={r.key}
-                onChange={(e) => {
-                  // Capture before the updater: React nulls e.currentTarget once
-                  // the handler returns, and the functional updater runs later.
-                  const key = e.currentTarget.value;
-                  setRows((rs) => rs.map((x, j) => (j === i ? { ...x, key } : x)));
-                }}
-                w={140}
-              />
-              <TextInput
-                placeholder="value"
-                value={r.value}
-                onChange={(e) => {
-                  const value = e.currentTarget.value;
-                  setRows((rs) => rs.map((x, j) => (j === i ? { ...x, value } : x)));
-                }}
-                style={{ flex: 1 }}
-              />
-              <ActionIcon
-                variant="subtle"
-                color="red"
-                aria-label="Remove"
-                onClick={() => setRows((rs) => rs.filter((_, j) => j !== i))}
-              >
-                <IconTrash size={16} />
-              </ActionIcon>
-            </Group>
-          ))}
-          <Button
-            variant="subtle"
-            size="xs"
-            leftSection={<IconPlus size={14} />}
-            onClick={() =>
-              setRows((rs) => [...rs, { id: crypto.randomUUID(), key: "", value: "" }])
-            }
-            style={{ alignSelf: "flex-start" }}
-          >
-            Add field
-          </Button>
-        </Stack>
-      </div>
+      {item.kind !== "audio" && (
+        <div>
+          <Text size="sm" fw={600} mb={4}>
+            Metadata
+          </Text>
+          <Stack gap="xs">
+            {rows.map((r, i) => (
+              <Group key={r.id} gap="xs" wrap="nowrap">
+                <TextInput
+                  placeholder="key"
+                  value={r.key}
+                  onChange={(e) => {
+                    // Capture before the updater: React nulls e.currentTarget once
+                    // the handler returns, and the functional updater runs later.
+                    const key = e.currentTarget.value;
+                    setRows((rs) => rs.map((x, j) => (j === i ? { ...x, key } : x)));
+                  }}
+                  w={140}
+                />
+                <TextInput
+                  placeholder="value"
+                  value={r.value}
+                  onChange={(e) => {
+                    const value = e.currentTarget.value;
+                    setRows((rs) => rs.map((x, j) => (j === i ? { ...x, value } : x)));
+                  }}
+                  style={{ flex: 1 }}
+                />
+                <ActionIcon
+                  variant="subtle"
+                  color="red"
+                  aria-label="Remove"
+                  onClick={() => setRows((rs) => rs.filter((_, j) => j !== i))}
+                >
+                  <IconTrash size={16} />
+                </ActionIcon>
+              </Group>
+            ))}
+            <Button
+              variant="subtle"
+              size="xs"
+              leftSection={<IconPlus size={14} />}
+              onClick={() =>
+                setRows((rs) => [...rs, { id: crypto.randomUUID(), key: "", value: "" }])
+              }
+              style={{ alignSelf: "flex-start" }}
+            >
+              Add field
+            </Button>
+          </Stack>
+        </div>
+      )}
 
-      <Switch
-        label="Require signed URLs"
-        checked={requireSignedURLs}
-        onChange={(e) => setRequireSignedURLs(e.currentTarget.checked)}
-      />
+      {item.kind !== "audio" && (
+        <Switch
+          label="Require signed URLs"
+          checked={requireSignedURLs}
+          onChange={(e) => setRequireSignedURLs(e.currentTarget.checked)}
+        />
+      )}
 
       <Group justify="space-between" mt="xs">
         <Button color="red" variant="light" onClick={confirmDelete} loading={del.isPending}>

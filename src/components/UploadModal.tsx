@@ -9,8 +9,25 @@ import { useState } from "react";
 import { isUploadable, uploadFile } from "@/lib/upload";
 import { useUIStore } from "@/lib/store";
 
-type Item = { name: string; percent: number; state: "uploading" | "done" | "error" };
+type Item = {
+  name: string;
+  percent: number;
+  state: "uploading" | "done" | "error";
+  error?: string;
+};
 const VIDEO_MIME = ["video/mp4", "video/quicktime", "video/webm", "video/x-matroska", "video/*"];
+const AUDIO_MIME = [
+  "audio/mpeg",
+  "audio/mp3",
+  "audio/wav",
+  "audio/ogg",
+  "audio/webm",
+  "audio/aac",
+  "audio/flac",
+  "audio/x-m4a",
+  "audio/mp4",
+  "audio/*",
+];
 
 export function UploadModal() {
   const opened = useUIStore((s) => s.uploadOpen);
@@ -33,7 +50,7 @@ export function UploadModal() {
         uploadFile(file, signed, (p) => update(i, { percent: p })).then(
           () => update(i, { percent: 100, state: "done" }),
           (e) => {
-            update(i, { state: "error" });
+            update(i, { state: "error", error: e instanceof Error ? e.message : "Upload failed" });
             throw e;
           },
         ),
@@ -59,10 +76,14 @@ export function UploadModal() {
           checked={signed}
           onChange={(e) => setSigned(e.currentTarget.checked)}
         />
-        <Dropzone onDrop={onDrop} accept={[...IMAGE_MIME_TYPE, ...VIDEO_MIME]} loading={busy}>
+        <Dropzone
+          onDrop={onDrop}
+          accept={[...IMAGE_MIME_TYPE, ...VIDEO_MIME, ...AUDIO_MIME]}
+          loading={busy}
+        >
           <Group justify="center" gap="sm" mih={120} style={{ pointerEvents: "none" }}>
             <IconUpload size={32} />
-            <Text>Drag images or videos here, or click to choose</Text>
+            <Text>Drag images, videos, or audio here, or click to choose</Text>
           </Group>
         </Dropzone>
         {items.length > 0 && (
@@ -85,6 +106,11 @@ export function UploadModal() {
                   value={it.percent}
                   color={it.state === "error" ? "red" : it.state === "done" ? "green" : "blue"}
                 />
+                {it.state === "error" && it.error && (
+                  <Text size="xs" c="red" mt={2}>
+                    {it.error}
+                  </Text>
+                )}
               </div>
             ))}
           </Stack>

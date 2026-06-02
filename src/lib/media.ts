@@ -1,18 +1,22 @@
 /* AGPL-3.0-or-later */
 import {
+  type AudioFile,
+  deleteAudio,
   deleteImage,
   deleteStream,
   type ImageItem,
+  listAudio,
   listImages,
   listStream,
   type MediaPatch,
   type StreamItem,
   type StreamLink,
+  updateAudio,
   updateImage,
   updateStream,
 } from "@/lib/cf-api";
 
-export type MediaKind = "image" | "video";
+export type MediaKind = "image" | "video" | "audio";
 
 export type MediaItem = {
   kind: MediaKind;
@@ -32,6 +36,10 @@ export type MediaItem = {
   // image-only
   variants: string[];
   meta: Record<string, string>;
+  // audio-only (null for image/video)
+  src: string | null;
+  contentType: string | null;
+  size: number | null;
 };
 
 const MAX_PAGES = 40; // safety cap for client-side load-all
@@ -53,6 +61,9 @@ function imageToMedia(i: ImageItem): MediaItem {
     links: [],
     variants: i.variants,
     meta: i.meta,
+    src: null,
+    contentType: null,
+    size: null,
   };
 }
 
@@ -73,6 +84,32 @@ function streamToMedia(v: StreamItem): MediaItem {
     links: v.links,
     variants: [],
     meta: v.meta,
+    src: null,
+    contentType: null,
+    size: null,
+  };
+}
+
+function audioToMedia(f: AudioFile): MediaItem {
+  return {
+    kind: "audio",
+    id: f.id,
+    name: f.name,
+    thumbnailUrl: "",
+    createdAt: f.createdAt,
+    requireSignedURLs: false,
+    duration: null,
+    width: null,
+    height: null,
+    status: null,
+    readyToStream: null,
+    iframeUrl: null,
+    links: [],
+    variants: [],
+    meta: {},
+    src: f.src,
+    contentType: f.contentType,
+    size: f.size,
   };
 }
 
@@ -100,16 +137,20 @@ async function allStream(): Promise<StreamItem[]> {
   return out;
 }
 
+async function allAudio(): Promise<AudioFile[]> {
+  return (await listAudio()).files;
+}
+
 export async function fetchAllMedia(): Promise<MediaItem[]> {
-  const [images, videos] = await Promise.all([allImages(), allStream()]);
-  return [...images.map(imageToMedia), ...videos.map(streamToMedia)];
+  const [images, videos, audio] = await Promise.all([allImages(), allStream(), allAudio()]);
+  return [...images.map(imageToMedia), ...videos.map(streamToMedia), ...audio.map(audioToMedia)];
 }
 
 export type SortKey = "newest" | "oldest" | "nameAsc" | "nameDesc" | "type" | "duration";
 
 export function filterAndSort(
   items: MediaItem[],
-  type: "all" | "image" | "video",
+  type: "all" | "image" | "video" | "audio",
   sort: SortKey,
 ): MediaItem[] {
   const filtered = type === "all" ? items : items.filter((i) => i.kind === type);
@@ -130,10 +171,12 @@ export function filterAndSort(
     case "nameDesc":
       sorted.sort((a, b) => byName(b, a));
       break;
-    case "type":
-      // images first, then videos; stable-ish by date within each
-      sorted.sort((a, b) => (a.kind === b.kind ? byDateDesc(a, b) : a.kind === "image" ? -1 : 1));
+    case "type": {
+      // images, then videos, then audio; by date within each group
+      const order = (k: MediaItem["kind"]) => (k === "image" ? 0 : k === "video" ? 1 : 2);
+      sorted.sort((a, b) => (a.kind === b.kind ? byDateDesc(a, b) : order(a.kind) - order(b.kind)));
       break;
+    }
     case "duration":
       // longest videos first; images (null duration) sort to the end
       sorted.sort((a, b) => (b.duration ?? -1) - (a.duration ?? -1));
@@ -145,10 +188,12 @@ export function filterAndSort(
 export function updateMediaItem(
   item: MediaItem,
   patch: MediaPatch,
-): Promise<ImageItem | StreamItem> {
+): Promise<ImageItem | StreamItem | AudioFile> {
+  if (item.kind === "audio") return updateAudio(item.id, { name: patch.name });
   return item.kind === "image" ? updateImage(item.id, patch) : updateStream(item.id, patch);
 }
 
 export function deleteMediaItem(item: MediaItem): Promise<{ ok: true }> {
+  if (item.kind === "audio") return deleteAudio(item.id);
   return item.kind === "image" ? deleteImage(item.id) : deleteStream(item.id);
 }

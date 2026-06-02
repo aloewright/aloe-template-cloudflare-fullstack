@@ -1,8 +1,20 @@
 /* AGPL-3.0-or-later */
-import { ActionIcon, Alert, Box, Button, Group, Image, Paper, Stack, Text } from "@mantine/core";
+import {
+  ActionIcon,
+  Alert,
+  Box,
+  Button,
+  Center,
+  Group,
+  Image,
+  Paper,
+  Stack,
+  Text,
+} from "@mantine/core";
 import { Carousel } from "@mantine/carousel";
 import "@mantine/carousel/styles.css";
-import { IconInfoCircle, IconPhoto, IconVideo } from "@tabler/icons-react";
+import { IconInfoCircle, IconMusic, IconPhoto, IconVideo } from "@tabler/icons-react";
+import { AudioPlayer } from "@/components/AudioPlayer";
 import type { EmblaCarouselType } from "embla-carousel";
 import { useEffect, useState } from "react";
 import type { MediaItem } from "@/lib/media";
@@ -10,6 +22,18 @@ import type { MediaItem } from "@/lib/media";
 // A single full-size preview pane. Images scale to contain; ready videos play
 // in the Stream iframe, others show a status note.
 function Preview({ item }: { item: MediaItem }) {
+  if (item.kind === "audio") {
+    return (
+      <Stack align="center" justify="center" h="100%" gap="lg" p="md">
+        <IconMusic size={96} opacity={0.5} />
+        {item.src && (
+          <div style={{ width: "min(680px, 90%)" }}>
+            <AudioPlayer src={item.src} variant="full" />
+          </div>
+        )}
+      </Stack>
+    );
+  }
   if (item.kind === "video") {
     if (item.readyToStream && item.iframeUrl) {
       return (
@@ -73,7 +97,13 @@ export function CinemaView({
     <Stack gap="sm">
       <Group justify="space-between" wrap="nowrap">
         <Group gap="xs" wrap="nowrap" style={{ minWidth: 0 }}>
-          {active?.kind === "video" ? <IconVideo size={18} /> : <IconPhoto size={18} />}
+          {active?.kind === "video" ? (
+            <IconVideo size={18} />
+          ) : active?.kind === "audio" ? (
+            <IconMusic size={18} />
+          ) : (
+            <IconPhoto size={18} />
+          )}
           <Text fw={600} lineClamp={1}>
             {active?.name ?? "—"}
           </Text>
@@ -140,11 +170,17 @@ export function CinemaView({
                 opacity: i === current ? 1 : 0.65,
               }}
             >
-              <img
-                src={item.thumbnailUrl}
-                alt=""
-                style={{ width: "100%", height: "100%", objectFit: "cover" }}
-              />
+              {item.kind === "audio" ? (
+                <Center h="100%">
+                  <IconMusic size={28} opacity={0.6} />
+                </Center>
+              ) : (
+                <img
+                  src={item.thumbnailUrl}
+                  alt=""
+                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                />
+              )}
             </ActionIcon>
           ))}
         </Group>

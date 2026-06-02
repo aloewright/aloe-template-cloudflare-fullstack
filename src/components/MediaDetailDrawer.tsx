@@ -13,6 +13,7 @@ import {
   Text,
 } from "@mantine/core";
 import { IconCheck, IconCopy } from "@tabler/icons-react";
+import { AudioPlayer } from "@/components/AudioPlayer";
 import { useQuery } from "@tanstack/react-query";
 import { getImage, getImageVariants, type VariantDims } from "@/lib/cf-api";
 import type { MediaItem } from "@/lib/media";
@@ -25,6 +26,12 @@ function variantName(url: string): string {
   } catch {
     return url;
   }
+}
+
+function fmtBytes(n: number): string {
+  if (n < 1024) return `${n} B`;
+  if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
+  return `${(n / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 function fmtDuration(seconds: number): string {
@@ -172,6 +179,31 @@ function VideoDetail({ item }: { item: MediaItem }) {
   );
 }
 
+function AudioDetail({ item }: { item: MediaItem }) {
+  return (
+    <Stack>
+      {item.src && <AudioPlayer src={item.src} variant="full" />}
+      <Group gap="xs">
+        <Badge variant="light">{item.id}</Badge>
+        {item.contentType && (
+          <Badge variant="light" color="teal">
+            {item.contentType}
+          </Badge>
+        )}
+        {item.size != null && (
+          <Badge variant="light" color="gray">
+            {fmtBytes(item.size)}
+          </Badge>
+        )}
+      </Group>
+      <MediaEditPanel item={item} />
+      <Text size="sm" c="dimmed">
+        Created {item.createdAt || "—"}
+      </Text>
+    </Stack>
+  );
+}
+
 export function MediaDetailDrawer({
   item,
   onClose,
@@ -181,7 +213,14 @@ export function MediaDetailDrawer({
 }) {
   return (
     <Drawer opened={item !== null} onClose={onClose} position="right" size="lg" title={item?.name}>
-      {item && (item.kind === "image" ? <ImageDetail item={item} /> : <VideoDetail item={item} />)}
+      {item &&
+        (item.kind === "image" ? (
+          <ImageDetail item={item} />
+        ) : item.kind === "video" ? (
+          <VideoDetail item={item} />
+        ) : (
+          <AudioDetail item={item} />
+        ))}
     </Drawer>
   );
 }

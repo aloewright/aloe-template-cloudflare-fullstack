@@ -3,7 +3,7 @@ import { create } from "zustand";
 import type { MediaItem, SortKey } from "@/lib/media";
 
 export type View = "grid" | "table" | "cinema";
-export type MediaType = "all" | "image" | "video";
+export type MediaType = "all" | "image" | "video" | "audio";
 
 type UIState = {
   view: View;
