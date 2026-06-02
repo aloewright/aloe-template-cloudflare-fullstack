@@ -19,6 +19,7 @@ import { getImage, getImageVariants, type VariantDims } from "@/lib/cf-api";
 import type { MediaItem } from "@/lib/media";
 import { LoadingAnimation } from "@/components/LoadingAnimation";
 import { MediaEditPanel } from "@/components/MediaEditPanel";
+import { ImageTransformPanel } from "@/components/ImageTransformPanel";
 
 function variantName(url: string): string {
   try {
@@ -120,6 +121,7 @@ function ImageDetail({ item }: { item: MediaItem }) {
           ))}
         </SimpleGrid>
       )}
+      <ImageTransformPanel item={item} />
     </Stack>
   );
 }
