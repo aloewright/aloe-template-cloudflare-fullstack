@@ -171,10 +171,12 @@ export function filterAndSort(
     case "nameDesc":
       sorted.sort((a, b) => byName(b, a));
       break;
-    case "type":
-      // images first, then videos; stable-ish by date within each
-      sorted.sort((a, b) => (a.kind === b.kind ? byDateDesc(a, b) : a.kind === "image" ? -1 : 1));
+    case "type": {
+      // images, then videos, then audio; by date within each group
+      const order = (k: MediaItem["kind"]) => (k === "image" ? 0 : k === "video" ? 1 : 2);
+      sorted.sort((a, b) => (a.kind === b.kind ? byDateDesc(a, b) : order(a.kind) - order(b.kind)));
       break;
+    }
     case "duration":
       // longest videos first; images (null duration) sort to the end
       sorted.sort((a, b) => (b.duration ?? -1) - (a.duration ?? -1));

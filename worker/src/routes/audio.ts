@@ -36,7 +36,9 @@ export function audioRoute(makeStore: MakeStore) {
     const file = form?.get("file");
     if (!(file instanceof File)) return c.json({ error: "file is required" }, 400);
     const id = crypto.randomUUID();
-    const ext = file.name.includes(".") ? file.name.slice(file.name.lastIndexOf(".")).toLowerCase() : "";
+    const ext = file.name.includes(".")
+      ? file.name.slice(file.name.lastIndexOf(".")).toLowerCase()
+      : "";
     const r2_key = `${id}${ext}`;
     const contentType = file.type || "application/octet-stream";
     await c.env.AUDIO_BUCKET.put(r2_key, file, { httpMetadata: { contentType } });
@@ -48,7 +50,13 @@ export function audioRoute(makeStore: MakeStore) {
       size: file.size,
       created_at: new Date().toISOString(),
     };
-    await makeStore(c.env).insert(row);
+    try {
+      await makeStore(c.env).insert(row);
+    } catch (err) {
+      // Don't leave an orphaned object in R2 if the metadata row never lands.
+      await c.env.AUDIO_BUCKET.delete(r2_key).catch(() => {});
+      throw err;
+    }
     return c.json(toAudioFile(row));
   });
 
@@ -106,8 +114,10 @@ export function audioRoute(makeStore: MakeStore) {
     const id = c.req.param("id");
     const row = await store.get(id);
     if (row) {
-      await c.env.AUDIO_BUCKET.delete(row.r2_key);
+      // Drop the D1 reference first; a failed object delete then leaves a
+      // harmless orphan rather than a row pointing at missing bytes.
       await store.remove(id);
+      await c.env.AUDIO_BUCKET.delete(row.r2_key);
     }
     return c.json({ ok: true });
   });
