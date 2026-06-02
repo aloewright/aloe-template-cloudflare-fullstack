@@ -3,6 +3,7 @@ import "@mantine/core/styles.css";
 import "@mantine/notifications/styles.css";
 import "@mantine/spotlight/styles.css";
 import "@mantine/nprogress/styles.css";
+import "@gfazioli/mantine-audio/styles.css";
 import "@/styles.css";
 
 import { ColorSchemeScript, mantineHtmlProps, MantineProvider } from "@mantine/core";
