@@ -70,7 +70,7 @@ export function MediaEditPanel({ item }: { item: MediaItem }) {
     <Stack gap="sm">
       <TextInput label="Name" value={name} onChange={(e) => setName(e.currentTarget.value)} />
 
-      <div>
+      {item.kind !== "audio" && <div>
         <Text size="sm" fw={600} mb={4}>
           Metadata
         </Text>
@@ -119,13 +119,13 @@ export function MediaEditPanel({ item }: { item: MediaItem }) {
             Add field
           </Button>
         </Stack>
-      </div>
+      </div>}
 
-      <Switch
+      {item.kind !== "audio" && <Switch
         label="Require signed URLs"
         checked={requireSignedURLs}
         onChange={(e) => setRequireSignedURLs(e.currentTarget.checked)}
-      />
+      />}
 
       <Group justify="space-between" mt="xs">
         <Button color="red" variant="light" onClick={confirmDelete} loading={del.isPending}>
