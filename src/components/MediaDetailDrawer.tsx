@@ -20,6 +20,7 @@ import type { MediaItem } from "@/lib/media";
 import { LoadingAnimation } from "@/components/LoadingAnimation";
 import { MediaEditPanel } from "@/components/MediaEditPanel";
 import { ImageTransformPanel } from "@/components/ImageTransformPanel";
+import { VideoClipPanel } from "@/components/VideoClipPanel";
 
 function variantName(url: string): string {
   try {
@@ -174,6 +175,7 @@ function VideoDetail({ item }: { item: MediaItem }) {
           </SimpleGrid>
         </>
       )}
+      <VideoClipPanel item={item} />
       <Text size="sm" c="dimmed">
         Created {item.createdAt || "—"}
       </Text>
