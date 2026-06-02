@@ -99,8 +99,20 @@ export function VideoDownloadPanel({ item }: { item: MediaItem }) {
       <Text size="sm" fw={600}>
         Downloads
       </Text>
-      <TypeRow uid={item.id} label="MP4" type="default" info={q.data?.default ?? null} onChange={invalidate} />
-      <TypeRow uid={item.id} label="Audio (M4A)" type="audio" info={q.data?.audio ?? null} onChange={invalidate} />
+      <TypeRow
+        uid={item.id}
+        label="MP4"
+        type="default"
+        info={q.data?.default ?? null}
+        onChange={invalidate}
+      />
+      <TypeRow
+        uid={item.id}
+        label="Audio (M4A)"
+        type="audio"
+        info={q.data?.audio ?? null}
+        onChange={invalidate}
+      />
     </Stack>
   );
 }

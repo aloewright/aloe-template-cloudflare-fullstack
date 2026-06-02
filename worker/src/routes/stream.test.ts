@@ -227,11 +227,14 @@ describe("streamRoute", () => {
   });
 
   it("POST /:uid/clip returns 409 when not connected", async () => {
-    const res = await app(disconnected).request("/api/stream/0ea62994907491cf9ebefb0a34c1e2c6/clip", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ startTimeSeconds: 0, endTimeSeconds: 5 }),
-    });
+    const res = await app(disconnected).request(
+      "/api/stream/0ea62994907491cf9ebefb0a34c1e2c6/clip",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ startTimeSeconds: 0, endTimeSeconds: 5 }),
+      },
+    );
     expect(res.status).toBe(409);
   });
 
@@ -253,7 +256,12 @@ describe("streamRoute", () => {
       return new Response(
         JSON.stringify({
           success: true,
-          result: { uid: UID, requireSignedURLs: false, meta: { name: "My Vid.mp4" }, thumbnail: "" },
+          result: {
+            uid: UID,
+            requireSignedURLs: false,
+            meta: { name: "My Vid.mp4" },
+            thumbnail: "",
+          },
         }),
         { status: 200 },
       );

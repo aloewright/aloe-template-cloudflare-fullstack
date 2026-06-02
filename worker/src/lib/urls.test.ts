@@ -1,6 +1,12 @@
 /* AGPL-3.0-or-later */
 import { describe, expect, it } from "vitest";
-import { parseAccountHash, parseStreamCode, pickImageThumbnail, sanitizeDownloadFilename, streamIframeUrl } from "./urls";
+import {
+  parseAccountHash,
+  parseStreamCode,
+  pickImageThumbnail,
+  sanitizeDownloadFilename,
+  streamIframeUrl,
+} from "./urls";
 
 describe("urls", () => {
   it("parses the account hash from a delivery URL", () => {

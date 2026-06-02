@@ -260,8 +260,7 @@ export function streamRoute(makeService: MakeService) {
       return c.json({ error: "Failed to load video" }, 502);
     }
 
-    const code =
-      creds.streamCode ?? parseStreamCode(video.thumbnail || video.playback?.hls || "");
+    const code = creds.streamCode ?? parseStreamCode(video.thumbnail || video.playback?.hls || "");
     const anyReady = dl.default?.status === "ready" || dl.audio?.status === "ready";
     let ref = uid;
     if (video.requireSignedURLs && anyReady) {
