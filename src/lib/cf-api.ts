@@ -33,6 +33,7 @@ export type StreamItem = {
   readyToStream: boolean;
   requireSignedURLs: boolean;
   thumbnailTimestampPct: number;
+  allowedOrigins: string[];
   iframeUrl: string;
   links: StreamLink[];
   meta: Record<string, string>;
@@ -101,6 +102,8 @@ export type MediaPatch = {
   name?: string;
   meta?: Record<string, string>;
   requireSignedURLs?: boolean;
+  thumbnailTimestampPct?: number;
+  allowedOrigins?: string[];
 };
 
 export const updateImage = (id: string, patch: MediaPatch) =>
