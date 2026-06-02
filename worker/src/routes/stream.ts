@@ -198,5 +198,43 @@ export function streamRoute(makeService: MakeService) {
     return c.json({ uploadURL, uid });
   });
 
+  app.post("/:uid/clip", async (c) => {
+    const creds = await makeService(c.env).credentials();
+    if (!creds) return c.json({ error: "Not connected" }, 409);
+    const uid = c.req.param("uid");
+    if (!/^[0-9a-f]{32}$/i.test(uid)) return c.json({ error: "Invalid uid" }, 400);
+    const body = await c.req
+      .json<{ startTimeSeconds?: number; endTimeSeconds?: number; name?: string }>()
+      .catch(() => ({}) as { startTimeSeconds?: number; endTimeSeconds?: number; name?: string });
+    const { startTimeSeconds, endTimeSeconds, name } = body;
+    if (
+      typeof startTimeSeconds !== "number" ||
+      typeof endTimeSeconds !== "number" ||
+      !Number.isFinite(startTimeSeconds) ||
+      !Number.isFinite(endTimeSeconds) ||
+      startTimeSeconds < 0 ||
+      endTimeSeconds <= startTimeSeconds
+    ) {
+      return c.json({ error: "Invalid clip range" }, 400);
+    }
+    let video: CfVideo;
+    try {
+      video = await cfJson<CfVideo>(creds, "/stream/clip", {
+        method: "POST",
+        body: JSON.stringify({
+          clippedFromVideoUID: uid,
+          startTimeSeconds,
+          endTimeSeconds,
+          ...(name ? { meta: { name } } : {}),
+        }),
+      });
+    } catch {
+      return c.json({ error: "Failed to create clip" }, 502);
+    }
+    const item = toStreamItem(video);
+    await signStreamItems([item], creds);
+    return c.json(item);
+  });
+
   return app;
 }

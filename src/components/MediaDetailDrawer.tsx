@@ -20,6 +20,7 @@ import type { MediaItem } from "@/lib/media";
 import { LoadingAnimation } from "@/components/LoadingAnimation";
 import { MediaEditPanel } from "@/components/MediaEditPanel";
 import { ImageTransformPanel } from "@/components/ImageTransformPanel";
+import { VideoClipPanel } from "@/components/VideoClipPanel";
 
 function variantName(url: string): string {
   try {
@@ -174,6 +175,7 @@ function VideoDetail({ item }: { item: MediaItem }) {
           </SimpleGrid>
         </>
       )}
+      <VideoClipPanel item={item} />
       <Text size="sm" c="dimmed">
         Created {item.createdAt || "—"}
       </Text>
@@ -216,12 +218,14 @@ export function MediaDetailDrawer({
   return (
     <Drawer opened={item !== null} onClose={onClose} position="right" size="lg" title={item?.name}>
       {item &&
+        // key by id so per-item panel state (edit fields, transform options,
+        // clip range/name) resets when a different item is opened.
         (item.kind === "image" ? (
-          <ImageDetail item={item} />
+          <ImageDetail key={item.id} item={item} />
         ) : item.kind === "video" ? (
-          <VideoDetail item={item} />
+          <VideoDetail key={item.id} item={item} />
         ) : (
-          <AudioDetail item={item} />
+          <AudioDetail key={item.id} item={item} />
         ))}
     </Drawer>
   );

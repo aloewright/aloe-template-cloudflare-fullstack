@@ -112,6 +112,16 @@ export const getStreamUploadUrl = (input: {
     body: JSON.stringify(input),
   });
 
+export const createClip = (
+  uid: string,
+  input: { startTimeSeconds: number; endTimeSeconds: number; name?: string },
+) =>
+  fetchJson<StreamItem>(`/api/stream/${encodeURIComponent(uid)}/clip`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+
 export type AudioFile = {
   id: string;
   name: string;
