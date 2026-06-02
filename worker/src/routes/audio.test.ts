@@ -7,7 +7,7 @@ import { audioRoute } from "./audio";
 function fakeStore(seed: AudioRow[] = []) {
   const m = new Map(seed.map((r) => [r.id, r]));
   const store: AudioStore = {
-    list: async () => [...m.values()].sort((a, b) => b.created_at.localeCompare(a.created_at)),
+    list: async () => [...m.values()].toSorted((a, b) => b.created_at.localeCompare(a.created_at)),
     insert: async (r) => void m.set(r.id, r),
     get: async (id) => m.get(id) ?? null,
     rename: async (id, name) => {
@@ -96,14 +96,28 @@ describe("audioRoute list + upload", () => {
 
   it("GET / lists files with a src URL", async () => {
     const { store } = fakeStore([
-      { id: "a1", r2_key: "a1.mp3", name: "One", content_type: "audio/mpeg", size: 10, created_at: "2026-01-01T00:00:00Z" },
+      {
+        id: "a1",
+        r2_key: "a1.mp3",
+        name: "One",
+        content_type: "audio/mpeg",
+        size: 10,
+        created_at: "2026-01-01T00:00:00Z",
+      },
     ]);
     const { bucket } = fakeBucket();
     const res = await makeApp(store, bucket).request("/api/audio");
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({
       files: [
-        { id: "a1", name: "One", contentType: "audio/mpeg", size: 10, createdAt: "2026-01-01T00:00:00Z", src: "/api/audio/a1" },
+        {
+          id: "a1",
+          name: "One",
+          contentType: "audio/mpeg",
+          size: 10,
+          createdAt: "2026-01-01T00:00:00Z",
+          src: "/api/audio/a1",
+        },
       ],
     });
   });
