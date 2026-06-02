@@ -1,6 +1,12 @@
 /* AGPL-3.0-or-later */
 import { describe, expect, it } from "vitest";
-import { parseAccountHash, parseStreamCode, pickImageThumbnail, streamIframeUrl } from "./urls";
+import {
+  parseAccountHash,
+  parseStreamCode,
+  pickImageThumbnail,
+  sanitizeDownloadFilename,
+  streamIframeUrl,
+} from "./urls";
 
 describe("urls", () => {
   it("parses the account hash from a delivery URL", () => {
@@ -31,5 +37,13 @@ describe("urls", () => {
     expect(streamIframeUrl("code1", "uid1")).toBe(
       "https://customer-code1.cloudflarestream.com/uid1/iframe",
     );
+  });
+
+  it("sanitizes download filenames", () => {
+    expect(sanitizeDownloadFilename("My Vid.mp4")).toBe("My_Vid");
+    expect(sanitizeDownloadFilename("a/b c.mov")).toBe("a_b_c");
+    expect(sanitizeDownloadFilename("clip-01_final.webm")).toBe("clip-01_final");
+    expect(sanitizeDownloadFilename("")).toBe("video");
+    expect(sanitizeDownloadFilename("***")).toBe("video");
   });
 });

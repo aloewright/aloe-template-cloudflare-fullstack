@@ -227,11 +227,133 @@ describe("streamRoute", () => {
   });
 
   it("POST /:uid/clip returns 409 when not connected", async () => {
-    const res = await app(disconnected).request("/api/stream/0ea62994907491cf9ebefb0a34c1e2c6/clip", {
+    const res = await app(disconnected).request(
+      "/api/stream/0ea62994907491cf9ebefb0a34c1e2c6/clip",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ startTimeSeconds: 0, endTimeSeconds: 5 }),
+      },
+    );
+    expect(res.status).toBe(409);
+  });
+
+  const UID = "0ea62994907491cf9ebefb0a34c1e2c6";
+
+  it("GET /:uid/downloads (public) returns statuses + a uid-based ready URL", async () => {
+    const fetchMock = vi.fn(async (url: string) => {
+      if (url.endsWith("/downloads"))
+        return new Response(
+          JSON.stringify({
+            success: true,
+            result: {
+              default: { status: "ready", percentComplete: 100, url: "ignored" },
+              audio: { status: "inprogress", percentComplete: 40, url: "ignored" },
+            },
+          }),
+          { status: 200 },
+        );
+      return new Response(
+        JSON.stringify({
+          success: true,
+          result: {
+            uid: UID,
+            requireSignedURLs: false,
+            meta: { name: "My Vid.mp4" },
+            thumbnail: "",
+          },
+        }),
+        { status: 200 },
+      );
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const res = await app(connected).request(`/api/stream/${UID}/downloads`);
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as {
+      default: { status: string; url: string | null };
+      audio: { status: string; url: string | null };
+    };
+    expect(body.default.status).toBe("ready");
+    expect(body.default.url).toBe(
+      `https://customer-CODE.cloudflarestream.com/${UID}/downloads/default.mp4?filename=My_Vid`,
+    );
+    expect(body.audio.status).toBe("inprogress");
+    expect(body.audio.url).toBeNull();
+  });
+
+  it("GET /:uid/downloads (signed) mints a downloadable token and uses it in the URL", async () => {
+    const fetchMock = vi.fn(async (url: string) => {
+      if (url.endsWith("/downloads"))
+        return new Response(
+          JSON.stringify({
+            success: true,
+            result: { default: { status: "ready", percentComplete: 100, url: "x" } },
+          }),
+          { status: 200 },
+        );
+      if (url.endsWith("/token"))
+        return new Response(JSON.stringify({ success: true, result: { token: "TOKENXYZ" } }), {
+          status: 200,
+        });
+      return new Response(
+        JSON.stringify({
+          success: true,
+          result: { uid: UID, requireSignedURLs: true, meta: { name: "Clip" }, thumbnail: "" },
+        }),
+        { status: 200 },
+      );
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const res = await app(connected).request(`/api/stream/${UID}/downloads`);
+    expect(res.status).toBe(200);
+    const tokenCall = fetchMock.mock.calls.find(([u]) =>
+      String(u).endsWith("/token"),
+    )! as unknown as [string, RequestInit];
+    expect(tokenCall[1].method).toBe("POST");
+    expect(JSON.parse(tokenCall[1].body as string)).toEqual({ downloadable: true });
+    const body = (await res.json()) as { default: { url: string | null } };
+    expect(body.default.url).toBe(
+      `https://customer-CODE.cloudflarestream.com/TOKENXYZ/downloads/default.mp4?filename=Clip`,
+    );
+  });
+
+  it("POST /:uid/downloads enables the requested type", async () => {
+    const fetchMock = vi.fn(
+      async () => new Response(JSON.stringify({ success: true, result: {} }), { status: 200 }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    await app(connected).request(`/api/stream/${UID}/downloads`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ startTimeSeconds: 0, endTimeSeconds: 5 }),
+      body: JSON.stringify({ type: "audio" }),
     });
+    const [postUrl, postInit] = fetchMock.mock.calls[0]! as unknown as [string, RequestInit];
+    expect(String(postUrl)).toBe(
+      `https://api.cloudflare.com/client/v4/accounts/acc1/stream/${UID}/downloads/audio`,
+    );
+    expect(postInit.method).toBe("POST");
+  });
+
+  it("DELETE /:uid/downloads?type=audio removes that download", async () => {
+    const fetchMock = vi.fn(
+      async () => new Response(JSON.stringify({ success: true, result: {} }), { status: 200 }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    const res = await app(connected).request(`/api/stream/${UID}/downloads?type=audio`, {
+      method: "DELETE",
+    });
+    expect(res.status).toBe(200);
+    const [delUrl, delInit] = fetchMock.mock.calls[0]! as unknown as [string, RequestInit];
+    expect(String(delUrl)).toBe(
+      `https://api.cloudflare.com/client/v4/accounts/acc1/stream/${UID}/downloads/audio`,
+    );
+    expect(delInit.method).toBe("DELETE");
+  });
+
+  it("downloads endpoints return 409 when not connected", async () => {
+    const res = await app(disconnected).request(`/api/stream/${UID}/downloads`);
     expect(res.status).toBe(409);
   });
 });
