@@ -1,5 +1,16 @@
 /* AGPL-3.0-or-later */
-import { ActionIcon, Alert, Box, Button, Center, Group, Image, Paper, Stack, Text } from "@mantine/core";
+import {
+  ActionIcon,
+  Alert,
+  Box,
+  Button,
+  Center,
+  Group,
+  Image,
+  Paper,
+  Stack,
+  Text,
+} from "@mantine/core";
 import { Carousel } from "@mantine/carousel";
 import "@mantine/carousel/styles.css";
 import { IconInfoCircle, IconMusic, IconPhoto, IconVideo } from "@tabler/icons-react";

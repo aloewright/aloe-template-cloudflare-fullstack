@@ -77,6 +77,14 @@ export async function uploadFile(
   requireSignedURLs: boolean,
   onProgress: ProgressFn,
 ): Promise<void> {
+  // A 0-byte file is almost always an undownloaded cloud placeholder (iCloud
+  // "Optimize Storage", etc.) or a corrupt export — the browser can read no
+  // bytes and Cloudflare would reject it. Fail early with a clear reason.
+  if (file.size === 0) {
+    throw new Error(
+      "File is empty (0 bytes) — it may be an undownloaded cloud placeholder. Open or download it locally, then re-upload.",
+    );
+  }
   if (file.type.startsWith("image/")) return uploadImage(file, requireSignedURLs, onProgress);
   if (file.type.startsWith("video/")) return uploadVideo(file, requireSignedURLs, onProgress);
   if (file.type.startsWith("audio/")) return uploadAudio(file, onProgress);

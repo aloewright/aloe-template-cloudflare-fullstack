@@ -34,7 +34,10 @@ app.route("/api/me", me);
 app.route("/api/settings", settingsRoute(makeService));
 app.route("/api/images", imagesRoute(makeService));
 app.route("/api/stream", streamRoute(makeService));
-app.route("/api/audio", audioRoute((env) => makeAudioStore(env.DB)));
+app.route(
+  "/api/audio",
+  audioRoute((env) => makeAudioStore(env.DB)),
+);
 
 // Template leftovers — now Access-gated and unused by the gallery app.
 app.route("/api/session", session);

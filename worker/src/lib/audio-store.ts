@@ -23,7 +23,9 @@ const COLS = "id, r2_key, name, content_type, size, created_at";
 export function makeAudioStore(db: D1Database): AudioStore {
   return {
     async list() {
-      const res = await db.prepare(`SELECT ${COLS} FROM audio_files ORDER BY created_at DESC`).all();
+      const res = await db
+        .prepare(`SELECT ${COLS} FROM audio_files ORDER BY created_at DESC`)
+        .all();
       return res.results as unknown as AudioRow[];
     },
     async insert(row) {
