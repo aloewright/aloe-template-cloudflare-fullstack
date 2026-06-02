@@ -111,3 +111,24 @@ export const getStreamUploadUrl = (input: {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(input),
   });
+
+export type AudioFile = {
+  id: string;
+  name: string;
+  contentType: string;
+  size: number;
+  createdAt: string;
+  src: string;
+};
+
+export const listAudio = () => fetchJson<{ files: AudioFile[] }>("/api/audio");
+
+export const updateAudio = (id: string, patch: { name?: string }) =>
+  fetchJson<AudioFile>(`/api/audio/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(patch),
+  });
+
+export const deleteAudio = (id: string) =>
+  fetchJson<{ ok: true }>(`/api/audio/${encodeURIComponent(id)}`, { method: "DELETE" });

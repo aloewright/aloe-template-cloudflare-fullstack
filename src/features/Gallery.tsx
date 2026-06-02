@@ -41,6 +41,7 @@ const TYPE_OPTIONS = [
   { value: "all", label: "All media" },
   { value: "image", label: "Images" },
   { value: "video", label: "Videos" },
+  { value: "audio", label: "Audio" },
 ];
 
 export function Gallery() {
