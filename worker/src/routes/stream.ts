@@ -201,6 +201,8 @@ export function streamRoute(makeService: MakeService) {
   app.post("/:uid/clip", async (c) => {
     const creds = await makeService(c.env).credentials();
     if (!creds) return c.json({ error: "Not connected" }, 409);
+    const uid = c.req.param("uid");
+    if (!/^[0-9a-f]{32}$/i.test(uid)) return c.json({ error: "Invalid uid" }, 400);
     const body = await c.req
       .json<{ startTimeSeconds?: number; endTimeSeconds?: number; name?: string }>()
       .catch(() => ({}) as { startTimeSeconds?: number; endTimeSeconds?: number; name?: string });
@@ -220,7 +222,7 @@ export function streamRoute(makeService: MakeService) {
       video = await cfJson<CfVideo>(creds, "/stream/clip", {
         method: "POST",
         body: JSON.stringify({
-          clippedFromVideoUID: c.req.param("uid"),
+          clippedFromVideoUID: uid,
           startTimeSeconds,
           endTimeSeconds,
           ...(name ? { meta: { name } } : {}),

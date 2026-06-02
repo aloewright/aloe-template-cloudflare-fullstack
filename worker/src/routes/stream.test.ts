@@ -197,7 +197,7 @@ describe("streamRoute", () => {
     );
     vi.stubGlobal("fetch", fetchMock);
 
-    const res = await app(connected).request("/api/stream/src1/clip", {
+    const res = await app(connected).request("/api/stream/0ea62994907491cf9ebefb0a34c1e2c6/clip", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ startTimeSeconds: 10, endTimeSeconds: 25, name: "My clip" }),
@@ -207,7 +207,7 @@ describe("streamRoute", () => {
     expect(url).toBe("https://api.cloudflare.com/client/v4/accounts/acc1/stream/clip");
     expect(init.method).toBe("POST");
     expect(JSON.parse(init.body as string)).toEqual({
-      clippedFromVideoUID: "src1",
+      clippedFromVideoUID: "0ea62994907491cf9ebefb0a34c1e2c6",
       startTimeSeconds: 10,
       endTimeSeconds: 25,
       meta: { name: "My clip" },
@@ -218,7 +218,7 @@ describe("streamRoute", () => {
   });
 
   it("POST /:uid/clip returns 400 when end <= start", async () => {
-    const res = await app(connected).request("/api/stream/src1/clip", {
+    const res = await app(connected).request("/api/stream/0ea62994907491cf9ebefb0a34c1e2c6/clip", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ startTimeSeconds: 30, endTimeSeconds: 30 }),
@@ -227,7 +227,7 @@ describe("streamRoute", () => {
   });
 
   it("POST /:uid/clip returns 409 when not connected", async () => {
-    const res = await app(disconnected).request("/api/stream/src1/clip", {
+    const res = await app(disconnected).request("/api/stream/0ea62994907491cf9ebefb0a34c1e2c6/clip", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ startTimeSeconds: 0, endTimeSeconds: 5 }),
