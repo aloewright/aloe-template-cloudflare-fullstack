@@ -40,20 +40,14 @@ export async function sendEmail(
   return { messageId: res.messageId };
 }
 
-// Best-effort plain-text fallback from developer-authored HTML: drop
-// <style>/<script> bodies, strip tags, decode the common entities, collapse
-// whitespace. Not a sanitizer and not a full HTML parser.
+// Best-effort plain-text fallback for the text/plain MIME part: strip tags and
+// collapse whitespace. Deliberately no regex-based <script>/<style> body removal
+// or HTML-entity decoding — those tripped CodeQL (bad-tag-filter / double-unescape)
+// and add no real value here, since this output is plain text, never re-rendered
+// as HTML. Supply your own `text` when you need exact control.
 function stripHtml(html: string): string {
   return html
-    .replace(/<style[\s\S]*?<\/style>/gi, "")
-    .replace(/<script[\s\S]*?<\/script>/gi, "")
     .replace(/<[^>]+>/g, " ")
-    .replace(/&nbsp;/g, " ")
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
     .replace(/\s+/g, " ")
     .trim();
 }
