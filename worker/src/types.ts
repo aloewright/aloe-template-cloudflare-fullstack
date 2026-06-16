@@ -5,6 +5,9 @@ export type Bindings = {
   DB: D1Database;
   // Dedicated R2 bucket for audio files (see docs/superpowers/specs/2026-06-01-audio-design.md).
   AUDIO_BUCKET: R2Bucket;
+  // Native Cloudflare Email Service send binding (see docs/superpowers/specs/2026-06-16-email-pipework-design.md).
+  EMAIL: SendEmail;
+  EMAIL_FROM: string; // default From address (var)
   // Cloudflare Access — see docs/superpowers/specs for setup.
   TEAM_DOMAIN: string; // https://<team>.cloudflareaccess.com
   POLICY_AUD: string; // Access application AUD tag

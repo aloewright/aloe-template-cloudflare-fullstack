@@ -12,6 +12,7 @@ import { me } from "./routes/me";
 import { session } from "./routes/session";
 import { settingsRoute } from "./routes/settings";
 import { audioRoute } from "./routes/audio";
+import { emailRoute } from "./routes/email";
 import { streamRoute } from "./routes/stream";
 import { success } from "./routes/success";
 import { webhook } from "./routes/webhook";
@@ -38,6 +39,7 @@ app.route(
   "/api/audio",
   audioRoute((env) => makeAudioStore(env.DB)),
 );
+app.route("/api/email", emailRoute);
 
 // Template leftovers — now Access-gated and unused by the gallery app.
 app.route("/api/session", session);
