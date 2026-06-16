@@ -11,19 +11,19 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@mantine/core": "^9.3.0",
+    "@mantine/core": "^9.3.1",
     "@mantine/hooks": "^9.2.2",
     "@mdx-js/react": "^3.0.0",
     "@tabler/icons-react": "^3.0.0",
-    "@tanstack/react-router": "^1.170.11",
+    "@tanstack/react-router": "^1.170.15",
     "react": "^19.2.7",
     "react-dom": "^19.2.7"
   },
   "devDependencies": {
     "@mdx-js/rollup": "^3.0.0",
-    "@shikijs/rehype": "^4.1.0",
-    "@types/node": "^25.9.1",
-    "@types/react": "^19.2.16",
+    "@shikijs/rehype": "^4.2.0",
+    "@types/node": "^25.9.3",
+    "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "^6.0.0",
     "postcss": "^8.5.15",
