@@ -26,6 +26,7 @@ A reference SaaS on Cloudflare Workers: React + Mantine on the front, Hono on a 
 - 🔓 **Stub-gated `/dashboard`** with a no-payment **Enter demo** button so visitors can explore the protected route without buying.
 - 🗄️ **Cloudflare D1 + Drizzle ORM** with migrations.
 - 🔐 **Better Auth scaffolded** in `worker/src/auth.ts` — swap-in instructions in the docs site.
+- 📧 **Native email** via Cloudflare Email Service — a `send_email` binding + a `sendEmail()` helper, an example `POST /api/email/test` route, and Better Auth verification/reset wiring. No third-party provider.
 - 📚 **Standalone docs site** in `docs/` (React + Mantine + MDX), deployed as a separate Worker.
 - ☁️ **One-click "Deploy to Cloudflare"** badge — auto-provisions D1 on first deploy.
 - 🤖 **GitHub Actions auto-deploy** + **Dependabot** weekly.
@@ -48,7 +49,8 @@ A reference SaaS on Cloudflare Workers: React + Mantine on the front, Hono on a 
 | **ORM**               | Drizzle                                                             | Schema-first, generates SQL migrations, runs in `workerd`                        |
 | **Billing**           | Polar (`@polar-sh/sdk`)                                             | Merchant of record — checkout sessions + webhook verification                    |
 | **Auth (scaffolded)** | Better Auth                                                         | D1-backed sessions, email+password ready — not wired in the reference deployment |
-| **Lint / Format**     | Biome 2.4                                                           | One tool, Rust-fast, replaces ESLint + Prettier                                  |
+| **Email**             | Cloudflare Email Service (`send_email` binding)                     | Native outbound email from the Worker — no SendGrid/Resend/SES               |
+| **Lint / Format**     | oxlint + Prettier                                                   | Rust-fast lint (`oxlint`) plus `prettier` formatting — matches the npm scripts  |
 | **Build**             | Vite 8 (Rolldown / Oxc) + `tsc --noEmit`                            | Type-check both client and worker tsconfigs                                      |
 | **Deploy**            | Wrangler 4                                                          | Worker + assets in a single deploy                                               |
 | **CI**                | GitHub Actions + Dependabot                                         | Auto-deploy on push to `main`; weekly dep bumps                                  |
@@ -82,6 +84,35 @@ A reference SaaS on Cloudflare Workers: React + Mantine on the front, Hono on a 
 - The Vite dev server still runs separately on `:5173`, proxying `/api/*` to `wrangler dev` on `:8787` for fast HMR (see `vite.config.ts`).
 
 **Data flow.** The browser calls `fetch("/api/...")`. In dev, Vite proxies to the Worker. In prod, the Worker handles it directly. Inside the Worker, Hono dispatches to handlers that build a Drizzle client over `env.DB` (D1).
+
+---
+
+## Email
+
+Outbound email is wired through **Cloudflare Email Service** — no third-party provider.
+
+- **Helper:** `worker/src/lib/email.ts` exports `sendEmail(env, { to, subject, html, text? })`, a thin wrapper over the native `env.EMAIL.send()` binding. It defaults `from` to `EMAIL_FROM` and derives a plain-text part from `html` when you omit one.
+- **Example route:** `POST /api/email/test` (Access-gated) sends a test message to the signed-in operator and returns `{ ok, to, messageId }`.
+- **Better Auth:** `worker/src/auth.ts` wires `sendVerificationEmail` and `sendResetPassword` to `sendEmail()` (ready for when you mount Better Auth).
+
+### Setup
+
+1. **Send to yourself for free, today.** Verify a destination address in **Email Service → Email Routing → Destination Addresses**. The Worker can email any verified destination on any plan, no quota.
+2. **Send to anyone.** Onboard a **sending domain** in **Email Service → Email Sending → Onboard Domain**. Cloudflare adds SPF + DKIM + DMARC DNS records under the `cf-bounce` subdomain (domain must use Cloudflare DNS). After onboarding you can email arbitrary recipients. Email Sending requires the **Workers Paid plan**; the daily quota starts conservative and scales with your sending reputation.
+3. Set `EMAIL_FROM` in `wrangler.jsonc` to an address on a domain you've onboarded.
+
+### Local dev & testing
+
+The binding uses `"remote": true`, so `wrangler dev` calls the real Email Service API. Quick check (through Access):
+
+```bash
+curl -X POST https://<your-app>/api/email/test
+```
+
+### Config & gotchas
+
+- Harden the binding in `wrangler.jsonc` with `destination_address`, `allowed_destination_addresses`, or `allowed_sender_addresses` if you want to restrict senders/recipients.
+- Worker sends show up as **"dropped"** in the Email Routing summary even when delivered — track real delivery in **Email Sending → metrics/logs**.
 
 ---
 
@@ -129,7 +160,7 @@ A reference SaaS on Cloudflare Workers: React + Mantine on the front, Hono on a 
 │   └── package.json
 │
 ├── dist/                      # Built SPA (created by `npm run build`)
-├── biome.json                 # Linter + formatter config
+├── .oxlintrc.json             # oxlint config (Prettier: .prettierrc)
 ├── postcss.config.cjs         # PostCSS config for Mantine breakpoint vars
 ├── vite.config.ts             # Vite + plugin-react + Tailwind + /api proxy
 ├── wrangler.toml              # Worker name, D1 binding, assets dir
@@ -236,9 +267,9 @@ D1 in local dev uses a SQLite file under `.wrangler/state/` — it's gitignored,
 | `npm run build`     | Build the SPA to `dist/` and typecheck the Worker |
 | `npm run preview`   | Preview the built SPA (no Worker)                 |
 | `npm run typecheck` | `tsc --noEmit` on both client and worker configs  |
-| `npm run lint`      | Biome lint (no writes)                            |
-| `npm run format`    | Biome format (writes)                             |
-| `npm run check`     | Biome lint + format + organize imports (writes)   |
+| `npm run lint`      | oxlint (no writes)                                |
+| `npm run format`    | Prettier — write all files                        |
+| `npm run check`     | oxlint --fix, then Prettier write                 |
 
 ---
 
@@ -341,9 +372,9 @@ The app is wrapped in `<MantineProvider>` → `<ModalsProvider>` → app → `<N
 
 Mantine requires PostCSS for breakpoint variables and the `rem()`/`em()` functions — see `postcss.config.cjs`. Tailwind 4 runs through `@tailwindcss/vite`, separate from the PostCSS pipeline, so they don't conflict.
 
-### Biome
+### Lint & format
 
-`biome.json` is configured for 2-space indent, double quotes, 100-column lines. The ECC tooling directories (`.claude/`, `.codex/`, `.agents/`) are excluded from formatting. Run `npm run check` before committing.
+Linting is [oxlint](https://oxc.rs) — config in `.oxlintrc.json` (react/typescript/unicorn plugins; `correctness` rules are errors). Formatting is [Prettier](https://prettier.io) — config in `.prettierrc` (100-column, double quotes, semicolons, trailing commas), with `.prettierignore` covering generated/vendored paths. Run `npm run check` (oxlint `--fix` then Prettier write) before committing.
 
 ### npm overrides
 
