@@ -1,7 +1,9 @@
 /* AGPL-3.0-or-later */
 import type { Bindings } from "../types";
 
-export type EmailMessage = {
+// Named SendEmailOptions (not EmailMessage) to avoid shadowing the global
+// `cloudflare:email` EmailMessage interface in the Worker types.
+export type SendEmailOptions = {
   to: string | string[];
   subject: string;
   html?: string;
@@ -18,7 +20,7 @@ export type EmailMessage = {
  */
 export async function sendEmail(
   env: Pick<Bindings, "EMAIL" | "EMAIL_FROM">,
-  msg: EmailMessage,
+  msg: SendEmailOptions,
 ): Promise<{ messageId: string }> {
   if (!msg.html && !msg.text) {
     throw new Error("sendEmail: provide at least one of `html` or `text`");

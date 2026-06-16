@@ -308,6 +308,7 @@ Defined in `worker/src/index.ts`:
 | `POST` | `/api/checkout`                       | Creates a Polar checkout session, returns `{ url }`                             |
 | `GET`  | `/api/checkout/success?checkout_id=…` | Polar redirect target — verifies the checkout, sets cookie, 302 to `/dashboard` |
 | `POST` | `/api/webhook/polar`                  | HMAC-verifies the Polar webhook and upserts a `subscriptions` row in D1         |
+| `POST` | `/api/email/test`                     | Sends a test email to the signed-in operator; returns `{ ok, to, messageId }`   |
 
 Anything not matching `/api/*` falls through to Workers Assets, which serves `dist/index.html` (the SPA).
 
