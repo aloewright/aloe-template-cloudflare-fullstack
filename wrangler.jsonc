@@ -21,8 +21,10 @@
       "bucket_name": "media-gallery-audio",
     },
   ],
+  "send_email": [{ "name": "EMAIL", "remote": true }],
   "vars": {
     "TEAM_DOMAIN": "https://worthy.cloudflareaccess.com",
     "POLICY_AUD": "a819d3b2f3c2de918f926bfb55da6fc592993c1250e2182ed84bc06b8666396f",
+    "EMAIL_FROM": "noreply@media.aloewright.me",
   },
 }
