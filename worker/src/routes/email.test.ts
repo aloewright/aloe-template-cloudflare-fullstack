@@ -43,6 +43,27 @@ describe("sendEmail helper", () => {
       sendEmail({ EMAIL, EMAIL_FROM: "x@test.dev" }, { to: "a@b.com", subject: "Hi" }),
     ).rejects.toThrow(/html.*text|text.*html/i);
   });
+
+  it("drops style/script blocks and decodes entities in the text fallback", async () => {
+    const { EMAIL, send } = fakeEmail();
+    await sendEmail(
+      { EMAIL, EMAIL_FROM: "noreply@test.dev" },
+      {
+        to: "a@b.com",
+        subject: "Hi",
+        html: "<style>.x{color:red}</style><p>Tom &amp; Jerry</p><script>alert(1)</script>",
+      },
+    );
+    const arg = send.mock.calls[0]![0] as Record<string, unknown>;
+    expect(arg.text).toBe("Tom & Jerry");
+  });
+
+  it("throws when no from address can be resolved", async () => {
+    const { EMAIL } = fakeEmail();
+    await expect(
+      sendEmail({ EMAIL, EMAIL_FROM: "" }, { to: "a@b.com", subject: "Hi", text: "x" }),
+    ).rejects.toThrow(/from/i);
+  });
 });
 
 function makeApp(env: Pick<Bindings, "EMAIL" | "EMAIL_FROM">, operator = "operator@example.com") {
