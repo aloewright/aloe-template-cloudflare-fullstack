@@ -1,6 +1,9 @@
 /* AGPL-3.0-or-later */
+import { Hono } from "hono";
 import { describe, expect, it, vi } from "vitest";
+import type { AppEnv, Bindings } from "../types";
 import { sendEmail } from "../lib/email";
+import { emailRoute } from "./email";
 
 function fakeEmail() {
   const send = vi.fn(async (_msg: unknown) => ({ messageId: "test-message-id" }));
@@ -39,5 +42,46 @@ describe("sendEmail helper", () => {
     await expect(
       sendEmail({ EMAIL, EMAIL_FROM: "x@test.dev" }, { to: "a@b.com", subject: "Hi" }),
     ).rejects.toThrow(/html.*text|text.*html/i);
+  });
+});
+
+function makeApp(env: Pick<Bindings, "EMAIL" | "EMAIL_FROM">, operator = "operator@example.com") {
+  const a = new Hono<AppEnv>();
+  a.use("*", async (c, next) => {
+    c.set("email", operator);
+    return next();
+  });
+  a.route("/api/email", emailRoute);
+  return {
+    request: (path: string, init?: RequestInit) => a.request(path, init, env as never),
+  };
+}
+
+describe("POST /api/email/test", () => {
+  it("sends to the authenticated operator and returns the messageId", async () => {
+    const { EMAIL, send } = fakeEmail();
+    const { request } = makeApp({ EMAIL, EMAIL_FROM: "noreply@test.dev" }, "me@example.com");
+    const res = await request("/api/email/test", { method: "POST" });
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({
+      ok: true,
+      to: "me@example.com",
+      messageId: "test-message-id",
+    });
+    const arg = send.mock.calls[0]![0] as Record<string, unknown>;
+    expect(arg.to).toBe("me@example.com");
+    expect(arg.from).toBe("noreply@test.dev");
+  });
+
+  it("surfaces a 500 when sendEmail throws", async () => {
+    const send = vi.fn(async () => {
+      throw new Error("send failure");
+    });
+    const { request } = makeApp(
+      { EMAIL: { send } as unknown as SendEmail, EMAIL_FROM: "noreply@test.dev" },
+      "me@example.com",
+    );
+    const res = await request("/api/email/test", { method: "POST" });
+    expect(res.status).toBe(500);
   });
 });
