@@ -39,7 +39,7 @@
     "@tanstack/react-start": "^1.168.25",
     "@tanstack/react-table": "^8.21.3",
     "@tanstack/react-virtual": "^3.14.2",
-    "better-auth": "^1.6.18",
+    "better-auth": "^1.6.22",
     "dayjs": "^1.11.21",
     "drizzle-orm": "^0.45.2",
     "embla-carousel-react": "^8.6.0",
