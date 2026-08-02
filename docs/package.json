@@ -26,7 +26,7 @@
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "^6.0.0",
-    "postcss": "^8.5.15",
+    "postcss": "^8.5.25",
     "postcss-preset-mantine": "^1.18.0",
     "postcss-simple-vars": "^7.0.1",
     "typescript": "^6.0.3",
