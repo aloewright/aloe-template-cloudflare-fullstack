@@ -11,25 +11,25 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@mantine/core": "^9.3.1",
+    "@mantine/core": "^9.5.1",
     "@mantine/hooks": "^9.2.2",
     "@mdx-js/react": "^3.0.0",
-    "@tabler/icons-react": "^3.0.0",
-    "@tanstack/react-router": "^1.170.15",
-    "react": "^19.2.7",
-    "react-dom": "^19.2.7"
+    "@tabler/icons-react": "^3.46.0",
+    "@tanstack/react-router": "^1.170.22",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
   },
   "devDependencies": {
     "@mdx-js/rollup": "^3.0.0",
-    "@shikijs/rehype": "^4.2.0",
+    "@shikijs/rehype": "^4.4.2",
     "@types/node": "^25.9.3",
-    "@types/react": "^19.2.17",
-    "@types/react-dom": "^19.2.0",
-    "@vitejs/plugin-react": "^6.0.0",
-    "postcss": "^8.5.15",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "@vitejs/plugin-react": "^6.0.5",
+    "postcss": "^8.5.26",
     "postcss-preset-mantine": "^1.18.0",
     "postcss-simple-vars": "^7.0.1",
     "typescript": "^6.0.3",
-    "vite": "^8.0.16"
+    "vite": "^8.2.1"
   }
 }
