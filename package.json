@@ -64,7 +64,7 @@
     "concurrently": "^10.0.3",
     "drizzle-kit": "^0.31.0",
     "oxlint": "^1.70.0",
-    "postcss": "^8.5.15",
+    "postcss": "^8.5.28",
     "postcss-preset-mantine": "^1.18.0",
     "postcss-simple-vars": "^7.0.1",
     "prettier": "^3.8.4",
